@@ -16,8 +16,26 @@
     <main>
         <section id="router">
             <h2>Router</h2>
-            <p>Network router.</p>
-            <p>Status: Not connected</p>
+            <p>Model: TP-Link Archer AX72</p>
+            <p>Status: <span id="router-status">Loading...</span></p>
+            <p>DHCP clients: <span id="dhcp-count">—</span></p>
+
+            <h3>DHCP Clients</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>IP Address</th>
+                        <th>MAC Address</th>
+                        <th>Lease Time</th>
+                    </tr>
+                </thead>
+                <tbody id="dhcp-clients">
+                    <tr>
+                        <td colspan="4">Loading clients...</td>
+                    </tr>
+                </tbody>
+            </table>
         </section>
 
         <section id="wifi">
@@ -40,5 +58,78 @@
     <footer>
         <p>Smart Home</p>
     </footer>
+
+
+<script>
+    async function loadRouterData() {
+        const statusElement = document.getElementById("router-status");
+        const countElement = document.getElementById("dhcp-count");
+        const clientsElement = document.getElementById("dhcp-clients");
+
+        try {
+            const response = await fetch(
+                "http://127.0.0.1:8000/api/network/router"
+            );
+
+            if (!response.ok) {
+                throw new Error("API request failed");
+            }
+
+            const data = await response.json();
+            const clients = data.dhcp_clients ?? [];
+
+            statusElement.textContent = data.online ? "Online" : "Offline";
+            countElement.textContent = clients.length;
+            clientsElement.replaceChildren();
+
+            if (clients.length === 0) {
+                const row = document.createElement("tr");
+                const cell = document.createElement("td");
+
+                cell.colSpan = 4;
+                cell.textContent = "No DHCP clients found.";
+                row.appendChild(cell);
+                clientsElement.appendChild(row);
+                return;
+            }
+
+            for (const client of clients) {
+                const row = document.createElement("tr");
+
+                for (const value of [
+                    client.name || "Unknown",
+                    client.ip,
+                    client.mac,
+                    client.lease_time
+                ]) {
+                    const cell = document.createElement("td");
+                    cell.textContent = value ?? "—";
+                    row.appendChild(cell);
+                }
+
+                clientsElement.appendChild(row);
+            }
+        } catch (error) {
+            statusElement.textContent = "Connection error";
+            countElement.textContent = "—";
+            clientsElement.replaceChildren();
+
+            const row = document.createElement("tr");
+            const cell = document.createElement("td");
+
+            cell.colSpan = 4;
+            cell.textContent =
+                "Could not load router data. Check the API connection.";
+
+            row.appendChild(cell);
+            clientsElement.appendChild(row);
+
+            console.error("Router API error:", error);
+        }
+    }
+
+    loadRouterData();
+</script>
+
 </body>
 </html>

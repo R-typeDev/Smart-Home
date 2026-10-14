@@ -1,11 +1,16 @@
 
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from integrations.tplink_router.router import TPLinkRouterIntegration
 
-load_dotenv()
+BASE_DIR = Path(__file__).resolve().parent.parent
+WEB_DIR = BASE_DIR / "web"
+
+load_dotenv(BASE_DIR / ".env")
 
 app = FastAPI(
     title="Smart Home API",
@@ -34,16 +39,17 @@ def get_router_integration() -> TPLinkRouterIntegration:
 
 @app.get("/")
 def root():
-    return {
-        "name": "Smart Home",
-        "version": "0.1.0",
-        "status": "running",
-    }
+    return FileResponse(WEB_DIR / "index.html")
 
 
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/pages/network/")
+def network_page():
+    return FileResponse(WEB_DIR / "pages" / "network" / "index.html")
 
 
 @app.get("/api/network/router")
