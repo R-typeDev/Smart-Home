@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from integrations.tplink_router.router import TPLinkRouterIntegration
+from integrations.tuya.plug import TuyaPlugIntegration
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 WEB_DIR = BASE_DIR / "web"
@@ -72,3 +73,34 @@ def get_router_status():
             ) from error
 
     return result
+
+
+def get_tuya_plug_integration() -> TuyaPlugIntegration:
+    try:
+        return TuyaPlugIntegration()
+    except RuntimeError as error:
+        raise HTTPException(
+            status_code=503,
+            detail=str(error),
+        ) from error
+
+
+@app.get("/api/devices/plug")
+def get_tuya_plug_status():
+    integration = get_tuya_plug_integration()
+
+    try:
+        result = integration.get_status()
+    except Exception as error:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Could not retrieve smart plug status: {type(error).__name__}",
+        ) from error
+
+    dps = result.get("dps", {})
+
+    return {
+        "online": True,
+        "name": "Smart Plug",
+        "power": dps.get("1"),
+    }
