@@ -53,6 +53,11 @@ def network_page():
     return FileResponse(WEB_DIR / "pages" / "network" / "index.html")
 
 
+@app.get("/pages/devices/")
+def devices_page():
+    return FileResponse(WEB_DIR / "pages" / "devices" / "index.html")    
+
+
 @app.get("/api/network/router")
 def get_router_status():
     integration = get_router_integration()
@@ -104,3 +109,30 @@ def get_tuya_plug_status():
         "name": "Smart Plug",
         "power": dps.get("1"),
     }
+
+@app.post("/api/devices/plug/on")
+def turn_on_tuya_plug():
+    integration = get_tuya_plug_integration()
+
+    try:
+        integration.turn_on()
+        return {"success": True, "power": True}
+    except Exception as error:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Could not turn on smart plug: {type(error).__name__}",
+        ) from error
+
+
+@app.post("/api/devices/plug/off")
+def turn_off_tuya_plug():
+    integration = get_tuya_plug_integration()
+
+    try:
+        integration.turn_off()
+        return {"success": True, "power": False}
+    except Exception as error:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Could not turn off smart plug: {type(error).__name__}",
+        ) from error

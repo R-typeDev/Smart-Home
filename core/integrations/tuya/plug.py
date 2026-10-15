@@ -44,3 +44,21 @@ class TuyaPlugIntegration:
             )
 
         return result
+
+    def turn_on(self) -> dict:
+        """Turn the smart plug on."""
+        result = self.device.turn_on()
+        if not isinstance(result, dict):
+            raise RuntimeError("Unexpected response from Tuya plug.")
+        if "Error" in result or "Err" in result:
+            raise RuntimeError("Tuya plug returned an error.")
+        return result
+
+    def turn_off(self) -> dict:
+        """Turn the smart plug off."""
+        result = self.device.turn_off()
+        if not isinstance(result, dict):
+            raise RuntimeError("Unexpected response from Tuya plug.")
+        if "Error" in result or "Err" in result:
+            raise RuntimeError("Tuya plug returned an error.")
+        return result
