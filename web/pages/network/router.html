@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#f0f0f0">
-    <title>Network | Smart Home</title>
     <meta name="description" content="Network infrastructure and connected devices in Smart Home.">
+    <title>Network | Smart Home</title>
+    <link rel="stylesheet" href="../../css/style.css">
 </head>
 <body>
     <header>
@@ -68,7 +68,7 @@
 
         try {
             const response = await fetch(
-                "http://127.0.0.1:8000/api/network/router"
+                "/api/network/router"
             );
 
             if (!response.ok) {

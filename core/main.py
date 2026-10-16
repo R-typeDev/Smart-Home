@@ -50,12 +50,22 @@ def health():
 
 @app.get("/pages/network/")
 def network_page():
-    return FileResponse(WEB_DIR / "pages" / "network" / "index.html")
+    return FileResponse(WEB_DIR / "pages" / "network.html")
 
 
 @app.get("/pages/devices/")
 def devices_page():
-    return FileResponse(WEB_DIR / "pages" / "devices" / "index.html")    
+    return FileResponse(WEB_DIR / "pages" / "devices.html")
+
+
+@app.get("/pages/network/router/")
+def router_page():
+    return FileResponse(WEB_DIR / "pages" / "network" / "router.html")
+
+
+@app.get("/pages/devices/smart-plug/")
+def smart_plug_page():
+    return FileResponse(WEB_DIR / "pages" / "devices" / "smart-plug.html")
 
 
 @app.get("/api/network/router")
