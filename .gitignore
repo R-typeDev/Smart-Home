@@ -10,3 +10,9 @@ core/.venv/
 .env
 .env.*
 !.env.example
+
+# SQLite databases
+data/*.db
+data/*.db-*
+data/*.sqlite
+data/*.sqlite3
