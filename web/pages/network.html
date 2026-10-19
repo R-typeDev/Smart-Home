@@ -3,27 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#f0f0f0">
-    <title>Network | Smart Home</title>
     <meta name="description" content="Network infrastructure and connected devices in Smart Home.">
+    <title>Network | Smart Home</title>
+    <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
     <header>
         <h1>Network</h1>
-        <p>Network infrastructure and connections.</p>
+        <p>Network infrastructure and connected devices.</p>
     </header>
 
     <main>
-        <ul>
-            <li>
-                <a href="/pages/network/router/">Router</a>
-            </li>
-        </ul>
+        <p id="network-status" role="status">Loading network devices...</p>
+        <ul id="network-devices"></ul>
     </main>
 
     <footer>
         <p>Smart Home</p>
     </footer>
 
+    <script>
+        const devicesList = document.getElementById("network-devices");
+        const statusMessage = document.getElementById("network-status");
+
+        async function loadNetworkDevices() {
+            try {
+                const response = await fetch("/api/network");
+
+                if (!response.ok) {
+                    throw new Error(`Request failed: ${response.status}`);
+                }
+
+                const devices = await response.json();
+                devicesList.replaceChildren();
+
+                if (devices.length === 0) {
+                    statusMessage.textContent = "No network devices registered.";
+                    return;
+                }
+
+                statusMessage.textContent = "";
+
+                for (const device of devices) {
+                    const item = document.createElement("li");
+                    const link = document.createElement("a");
+
+                    link.href =
+                        `/pages/network/item/${encodeURIComponent(device.id)}/`;
+                    link.textContent = device.name || "Unnamed device";
+
+                    const details = document.createElement("p");
+                    details.textContent = [
+                        device.manufacturer,
+                        device.model,
+                        device.type
+                    ].filter(Boolean).join(" · ");
+
+                    item.append(link, details);
+                    devicesList.appendChild(item);
+                }
+            } catch (error) {
+                console.error("Could not load network devices:", error);
+                statusMessage.textContent = "Could not load network devices.";
+            }
+        }
+
+        loadNetworkDevices();
+    </script>
 </body>
 </html>

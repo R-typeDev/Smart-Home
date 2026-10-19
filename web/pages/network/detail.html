@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Network device details in Smart Home.">
+    <title>Network device | Smart Home</title>
+    <link rel="stylesheet" href="../../css/style.css">
+</head>
+<body>
+    <header>
+        <p><a href="/pages/network/">Back to Network</a></p>
+        <h1 id="device-name">Network device</h1>
+        <p id="device-status" role="status">Loading device details...</p>
+    </header>
+
+    <main>
+        <section>
+            <h2>Device information</h2>
+            <dl id="device-info"></dl>
+        </section>
+
+        <section id="network-clients-section" hidden>
+            <h2>Connected devices (DHCP)</h2>
+            <p id="clients-status"></p>
+            <div id="network-clients"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Smart Home</p>
+    </footer>
+
+    <script>
+        const deviceName = document.getElementById("device-name");
+        const deviceStatus = document.getElementById("device-status");
+        const deviceInfo = document.getElementById("device-info");
+        const clientsSection = document.getElementById("network-clients-section");
+        const clientsStatus = document.getElementById("clients-status");
+        const clientsContainer = document.getElementById("network-clients");
+
+        const pathParts = window.location.pathname.split("/").filter(Boolean);
+        const deviceId = pathParts[pathParts.length - 1];
+
+        function addInfoRow(label, value) {
+            if (value === null || value === undefined || value === "") {
+                return;
+            }
+
+            const term = document.createElement("dt");
+            term.textContent = label;
+
+            const description = document.createElement("dd");
+            description.textContent = String(value);
+
+            deviceInfo.append(term, description);
+        }
+
+        function renderClients(clients) {
+            clientsContainer.replaceChildren();
+
+            if (!Array.isArray(clients) || clients.length === 0) {
+                clientsStatus.textContent = "No DHCP clients found.";
+                return;
+            }
+
+            const table = document.createElement("table");
+            const columns = [
+                ...new Set(
+                    clients.flatMap(client =>
+                        client && typeof client === "object"
+                            ? Object.keys(client)
+                            : ["Device"]
+                    )
+                )
+            ];
+
+            const thead = document.createElement("thead");
+            const headerRow = document.createElement("tr");
+
+            for (const column of columns) {
+                const th = document.createElement("th");
+                th.scope = "col";
+                th.textContent = column;
+                headerRow.appendChild(th);
+            }
+
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            const tbody = document.createElement("tbody");
+
+            for (const client of clients) {
+                const row = document.createElement("tr");
+
+                for (const column of columns) {
+                    const cell = document.createElement("td");
+                    const value = client && typeof client === "object"
+                        ? client[column]
+                        : client;
+
+                    cell.textContent =
+                        value === null || value === undefined
+                            ? ""
+                            : String(value);
+
+                    row.appendChild(cell);
+                }
+
+                tbody.appendChild(row);
+            }
+
+            table.appendChild(tbody);
+            clientsContainer.appendChild(table);
+            clientsStatus.textContent = `Connected clients: ${clients.length}`;
+        }
+
+        async function loadDeviceDetails() {
+            try {
+                const response = await fetch(
+                    `/api/network/${encodeURIComponent(deviceId)}`
+                );
+
+                if (!response.ok) {
+                    throw new Error(`Request failed: ${response.status}`);
+                }
+
+                const result = await response.json();
+                const device = result.device;
+
+                deviceName.textContent = device.name || "Network device";
+                deviceStatus.textContent =
+                    result.online === true
+                        ? "Router is online."
+                        : result.online === false
+                            ? "Router is offline."
+                            : result.integration_supported
+                                ? "Connection status unavailable."
+                                : "No network status integration is configured for this device.";
+
+                addInfoRow("ID", device.id);
+                addInfoRow("Type", device.type);
+                addInfoRow("Manufacturer", device.manufacturer);
+                addInfoRow("Model", device.model);
+                addInfoRow("Integration", device.integration_id);
+                addInfoRow("Enabled", device.enabled === 1 ? "Yes" : "No");
+
+                if (device.type === "router") {
+                    clientsSection.hidden = false;
+
+                    if (result.online === false) {
+                        clientsStatus.textContent =
+                            "DHCP clients are unavailable while the router is offline.";
+                    } else if (result.integration_supported) {
+                        renderClients(result.dhcp_clients);
+                    } else {
+                        clientsStatus.textContent =
+                            "DHCP client information is not available for this integration.";
+                    }
+                }
+            } catch (error) {
+                console.error("Could not load network device:", error);
+                deviceStatus.textContent =
+                    "Could not load device details. Check the API and device configuration.";
+            }
+        }
+
+        loadDeviceDetails();
+    </script>
+</body>
+</html>

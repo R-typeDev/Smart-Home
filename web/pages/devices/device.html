@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,18 +26,25 @@
 
             <h2>Device status</h2>
 
-            <p>Connection: <span id="device-connection">Not checked</span></p>
-            <p>Power: <span id="device-power">Not checked</span></p>
+            <p id="connection-row">
+                Connection: <span id="device-connection">Not checked</span>
+            </p>
+
+            <p id="power-row">
+                Power: <span id="device-power">Not checked</span>
+            </p>
 
             <p id="device-message" role="status" aria-live="polite"></p>
 
-            <button id="device-on" type="button" disabled>
-                Turn On
-            </button>
+            <div id="device-controls">
+                <button id="device-on" type="button" disabled>
+                    Turn On
+                </button>
 
-            <button id="device-off" type="button" disabled>
-                Turn Off
-            </button>
+                <button id="device-off" type="button" disabled>
+                    Turn Off
+                </button>
+            </div>
         </section>
     </main>
 
@@ -52,9 +60,12 @@
         let currentPower = null;
 
         const deviceName = document.getElementById("device-name");
+        const connectionRow = document.getElementById("connection-row");
+        const powerRow = document.getElementById("power-row");
         const connectionElement = document.getElementById("device-connection");
         const powerElement = document.getElementById("device-power");
         const messageElement = document.getElementById("device-message");
+        const controlsElement = document.getElementById("device-controls");
         const onButton = document.getElementById("device-on");
         const offButton = document.getElementById("device-off");
 
@@ -96,6 +107,21 @@
             );
         }
 
+        function isRouter(device) {
+            return (
+                device.type === "router" &&
+                device.integration_id === "tplink_router"
+            );
+        }
+
+        function hidePowerControls() {
+            powerRow.hidden = true;
+            controlsElement.hidden = true;
+            controlAvailable = false;
+            currentPower = null;
+            updateButtonState();
+        }
+
         async function loadDevice() {
             const deviceId = getDeviceIdFromPath();
 
@@ -130,20 +156,36 @@
                 document.getElementById("device-enabled").textContent =
                     currentDevice.enabled === 1 ? "Enabled" : "Disabled";
 
-                if (!isTuyaCandidate(currentDevice)) {
+                if (isRouter(currentDevice)) {
+                    powerRow.hidden = true;
+                    controlsElement.hidden = true;
                     controlAvailable = false;
                     currentPower = null;
                     updateButtonState();
 
-                    connectionElement.textContent = "Not available";
-                    powerElement.textContent = "Not available";
-                    messageElement.textContent =
-                        "Status and control are not configured for this device.";
+                    messageElement.textContent = "Checking router availability...";
+                    await loadRouterStatus();
                     return;
                 }
 
-                messageElement.textContent = "Checking device availability...";
-                await loadDeviceStatus();
+                if (isTuyaCandidate(currentDevice)) {
+                    connectionRow.hidden = false;
+                    powerRow.hidden = false;
+                    controlsElement.hidden = false;
+
+                    messageElement.textContent = "Checking device availability...";
+                    await loadDeviceStatus();
+                    return;
+                }
+
+                controlAvailable = false;
+                currentPower = null;
+                updateButtonState();
+
+                connectionElement.textContent = "Not available";
+                powerElement.textContent = "Not available";
+                messageElement.textContent =
+                    "Status and control are not configured for this device.";
             } catch (error) {
                 currentDevice = null;
                 controlAvailable = false;
@@ -155,6 +197,31 @@
                     `Could not load device details: ${error.message}`;
 
                 console.error(error);
+            }
+        }
+
+        async function loadRouterStatus() {
+            if (!currentDevice || !isRouter(currentDevice)) {
+                return;
+            }
+
+            try {
+                const result = await requestJson(
+                    `/api/network/${encodeURIComponent(currentDevice.id)}`
+                );
+
+                connectionElement.textContent =
+                    result.online === true
+                        ? "Online"
+                        : result.online === false
+                            ? "Offline"
+                            : "Unavailable";
+
+                messageElement.textContent = "";
+            } catch (error) {
+                connectionElement.textContent = "Unavailable";
+                messageElement.textContent =
+                    `Could not retrieve router status: ${error.message}`;
             }
         }
 
@@ -217,6 +284,7 @@
         async function setDevicePower(action) {
             if (
                 !currentDevice ||
+                !isTuyaCandidate(currentDevice) ||
                 !controlAvailable ||
                 commandInProgress ||
                 statusCheckInProgress ||
@@ -264,9 +332,15 @@
 
         loadDevice();
 
-        // Automatically refresh the device status every 5 seconds.
+        // Refresh the relevant status every five seconds.
         setInterval(() => {
-            if (currentDevice && !commandInProgress) {
+            if (!currentDevice || commandInProgress) {
+                return;
+            }
+
+            if (isRouter(currentDevice)) {
+                loadRouterStatus();
+            } else if (isTuyaCandidate(currentDevice)) {
                 loadDeviceStatus();
             }
         }, 5000);

@@ -24,6 +24,8 @@ app = FastAPI(
     version="0.1.0",
 )
 
+NETWORK_DEVICE_TYPES = {"router", "access_point", "switch"}
+
 
 def get_router_integration() -> TPLinkRouterIntegration:
     host = os.getenv("TPLINK_ROUTER_HOST", "http://192.168.0.1")
@@ -112,9 +114,16 @@ def health():
     return {"status": "ok"}
 
 
+# Pages
+
 @app.get("/pages/network/")
 def network_page():
     return FileResponse(WEB_DIR / "pages" / "network.html")
+
+
+@app.get("/pages/network/item/{device_id}/")
+def network_device_detail_page(device_id: str):
+    return FileResponse(WEB_DIR / "pages" / "network" / "detail.html")
 
 
 @app.get("/pages/devices/")
@@ -127,32 +136,67 @@ def device_detail_page(device_id: str):
     return FileResponse(WEB_DIR / "pages" / "devices" / "device.html")
 
 
-@app.get("/pages/network/router/")
-def router_page():
-    return FileResponse(WEB_DIR / "pages" / "network" / "router.html")
+# Network API
+
+@app.get("/api/network")
+def get_network_devices():
+    return [
+        device
+        for device in get_devices()
+        if device.get("type") in NETWORK_DEVICE_TYPES
+    ]
 
 
-@app.get("/api/network/router")
-def get_router_status():
-    integration = get_router_integration()
-    is_online = integration.is_online()
+@app.get("/api/network/{device_id}")
+def get_network_device(device_id: str):
+    device = get_device(device_id)
+
+    if device is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Device not found.",
+        )
+
+    if device.get("type") not in NETWORK_DEVICE_TYPES:
+        raise HTTPException(
+            status_code=404,
+            detail="Network device not found.",
+        )
 
     result = {
-        "online": is_online,
+        "device": device,
+        "online": None,
         "dhcp_clients": [],
+        "integration_supported": False,
     }
 
-    if is_online:
-        try:
-            result["dhcp_clients"] = integration.get_dhcp_clients()
-        except Exception as error:
-            raise HTTPException(
-                status_code=502,
-                detail=f"Could not retrieve router data: {type(error).__name__}",
-            ) from error
+    # Router communication remains in the existing integration.
+    if (
+        device.get("type") == "router"
+        and device.get("integration_id") == "tplink_router"
+    ):
+        integration = get_router_integration()
+        online = integration.is_online()
+
+        result["online"] = online
+        result["integration_supported"] = True
+
+        if online:
+            try:
+                result["dhcp_clients"] = integration.get_dhcp_clients()
+            except Exception as error:
+                raise HTTPException(
+                    status_code=502,
+                    detail=(
+                        "Could not retrieve router data: "
+                        f"{type(error).__name__}"
+                    ),
+                ) from error
 
     return result
 
+
+# Devices API
 
 @app.get("/api/devices")
 def get_devices_list():
