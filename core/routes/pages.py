@@ -8,25 +8,38 @@ router = APIRouter()
 
 
 @router.get("/")
-def root():
+@router.get("/dashboard")
+@router.get("/devices")
+@router.get("/network")
+@router.get("/integrations")
+@router.get("/settings")
+def app_page():
     return FileResponse(WEB_DIR / "index.html")
 
 
 @router.get("/pages/network/")
 def network_page():
-    return FileResponse(WEB_DIR / "pages" / "network.html")
+    return FileResponse(
+        WEB_DIR / "pages" / "network" / "network.html"
+    )
 
 
 @router.get("/pages/network/item/{device_id}/")
 def network_device_detail_page(device_id: str):
-    return FileResponse(WEB_DIR / "pages" / "network" / "detail.html")
+    return FileResponse(
+        WEB_DIR / "pages" / "network" / "network-device.html"
+    )
 
 
 @router.get("/pages/devices/")
 def devices_page():
-    return FileResponse(WEB_DIR / "pages" / "devices.html")
+    return FileResponse(
+        WEB_DIR / "pages" / "devices" / "devices.html"
+    )
 
 
 @router.get("/pages/devices/item/{device_id}/")
 def device_detail_page(device_id: str):
-    return FileResponse(WEB_DIR / "pages" / "devices" / "device.html")
+    return FileResponse(
+        WEB_DIR / "pages" / "devices" / "device.html"
+    )

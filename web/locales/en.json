@@ -1,0 +1,49 @@
+﻿{
+    "app": {
+        "name": "Smart Home",
+        "language": "Language",
+        "loading": "Loading..."
+    },
+    "nav": {
+        "dashboard": "Dashboard",
+        "devices": "Devices",
+        "network": "Network",
+        "integrations": "Integrations",
+        "settings": "Settings"
+    },
+    "dashboard": {
+        "title": "Dashboard",
+        "description": "An overview of your smart home system.",
+        "welcome": "Welcome",
+        "empty": "Your smart home's key information will appear here."
+    },
+    "pages": {
+        "devices": "Devices",
+        "network": "Network",
+        "integrations": "Integrations",
+        "settings": "Settings",
+        "placeholder": "This section will be connected in a later step."
+    },
+    "pageMeta": {
+        "dashboard": {
+            "title": "Dashboard",
+            "description": "View an overview of your smart home system and connected devices."
+        },
+        "devices": {
+            "title": "Devices",
+            "description": "View and manage devices connected to your smart home."
+        },
+        "network": {
+            "title": "Network",
+            "description": "Monitor your home network and connected network equipment."
+        },
+        "integrations": {
+            "title": "Integrations",
+            "description": "Manage integrations connecting Smart Home to devices and services."
+        },
+        "settings": {
+            "title": "Settings",
+            "description": "Configure your Smart Home application preferences."
+        }
+    }
+}

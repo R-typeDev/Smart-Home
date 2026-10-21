@@ -1,0 +1,10 @@
+﻿.dashboard-page .panel {
+    max-width: 900px;
+    margin-top: 24px;
+}
+
+.dashboard-page .panel p {
+    margin-bottom: 0;
+    color: var(--color-muted);
+    line-height: 1.6;
+}
