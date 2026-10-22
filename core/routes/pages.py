@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter
 from fastapi.responses import FileResponse
 
@@ -17,6 +16,18 @@ def app_page():
     return FileResponse(WEB_DIR / "index.html")
 
 
+@router.get("/devices/item/{device_id}")
+@router.get("/devices/item/{device_id}/")
+def device_detail_page(device_id: str):
+    return FileResponse(WEB_DIR / "index.html")
+
+
+@router.get("/network/item/{device_id}")
+@router.get("/network/item/{device_id}/")
+def network_device_detail_page(device_id: str):
+    return FileResponse(WEB_DIR / "index.html")
+
+
 @router.get("/pages/network/")
 def network_page():
     return FileResponse(
@@ -25,7 +36,7 @@ def network_page():
 
 
 @router.get("/pages/network/item/{device_id}/")
-def network_device_detail_page(device_id: str):
+def legacy_network_device_detail_page(device_id: str):
     return FileResponse(
         WEB_DIR / "pages" / "network" / "network-device.html"
     )
@@ -39,7 +50,7 @@ def devices_page():
 
 
 @router.get("/pages/devices/item/{device_id}/")
-def device_detail_page(device_id: str):
+def legacy_device_detail_page(device_id: str):
     return FileResponse(
         WEB_DIR / "pages" / "devices" / "device.html"
     )

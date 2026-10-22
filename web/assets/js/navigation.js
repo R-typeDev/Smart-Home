@@ -34,22 +34,64 @@ const pages = {
     }
 };
 
+function resolveRoute(path) {
+    if (pages[path]) {
+        return {
+            path,
+            page: pages[path]
+        };
+    }
+
+    const deviceMatch = path.match(/^\/devices\/item\/([^/]+)\/?$/);
+
+    if (deviceMatch) {
+        return {
+            path: path.replace(/\/$/, ""),
+            page: {
+                name: "device-detail",
+                html: "/pages/devices/device.html",
+                js: "/pages/devices/device.js",
+                css: "/pages/devices/devices.css"
+            }
+        };
+    }
+
+    const networkMatch = path.match(/^\/network\/item\/([^/]+)\/?$/);
+
+    if (networkMatch) {
+        return {
+            path: path.replace(/\/$/, ""),
+            page: {
+                name: "network-device-detail",
+                html: "/pages/network/network-device.html",
+                js: "/pages/network/network-device.js",
+                css: "/pages/network/network.css"
+            }
+        };
+    }
+
+    return {
+        path: "/dashboard",
+        page: pages["/dashboard"]
+    };
+}
+
 async function navigate(path, updateHistory = true) {
-    const route = pages[path] ? path : "/dashboard";
+    const route = resolveRoute(path);
 
     if (updateHistory) {
-        history.pushState({}, "", route);
+        history.pushState({}, "", route.path);
     }
 
     document.querySelectorAll("a[data-route]").forEach((link) => {
-        if (link.dataset.route === route) {
+        if (link.dataset.route === route.path) {
             link.setAttribute("aria-current", "page");
         } else {
             link.removeAttribute("aria-current");
         }
     });
 
-    await loadPage(pages[route]);
+    await loadPage(route.page);
     applyTranslations();
 }
 
@@ -80,13 +122,11 @@ export function startNavigation() {
         applyTranslations();
     });
 
-    const path = pages[location.pathname]
-        ? location.pathname
-        : "/dashboard";
+    const route = resolveRoute(location.pathname);
 
-    if (location.pathname !== path) {
-        history.replaceState({}, "", path);
+    if (location.pathname !== route.path) {
+        history.replaceState({}, "", route.path);
     }
 
-    navigate(path, false);
+    navigate(route.path, false);
 }
