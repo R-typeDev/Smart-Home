@@ -1,8 +1,31 @@
-﻿<section class="page-placeholder" aria-labelledby="devices-title">
+﻿<section class="devices-page" aria-labelledby="devices-title">
     <header class="page-header">
         <h1 id="devices-title" data-i18n="pages.devices">Devices</h1>
-        <p class="page-description" data-i18n="pages.placeholder">
-            This section will be connected in a later step.
+        <p class="page-description">
+            All registered devices in your Smart Home system.
         </p>
     </header>
+
+    <div
+        id="devices-message"
+        class="devices-message"
+        role="status"
+        aria-live="polite"
+        hidden
+    ></div>
+
+    <div
+        id="devices-list"
+        class="devices-list"
+        aria-label="Registered devices"
+    ></div>
+
+    <button
+        id="devices-retry"
+        class="devices-retry"
+        type="button"
+        hidden
+    >
+        Retry
+    </button>
 </section>

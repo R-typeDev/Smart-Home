@@ -1,6 +1,87 @@
-<section class="page-placeholder">
+
+<section class="device-page" id="device-page">
     <header class="page-header">
-        <h1>Device</h1>
-        <p>Device details will be available here.</p>
+        <h1 id="device-name">Device</h1>
+        <p id="device-description">
+            Loading device information...
+        </p>
     </header>
+
+    <section
+        class="device-details"
+        aria-labelledby="device-details-title"
+    >
+        <h2 id="device-details-title">Device details</h2>
+
+        <dl class="device-details__list">
+            <div class="device-details__item">
+                <dt>Device ID</dt>
+                <dd id="device-id">—</dd>
+            </div>
+
+            <div class="device-details__item">
+                <dt>External ID</dt>
+                <dd id="device-external-id">—</dd>
+            </div>
+
+            <div class="device-details__item">
+                <dt>Type</dt>
+                <dd id="device-type">—</dd>
+            </div>
+
+            <div class="device-details__item">
+                <dt>Manufacturer</dt>
+                <dd id="device-manufacturer">—</dd>
+            </div>
+
+            <div class="device-details__item">
+                <dt>Model</dt>
+                <dd id="device-model">—</dd>
+            </div>
+
+            <div class="device-details__item">
+                <dt>Integration</dt>
+                <dd id="device-integration">—</dd>
+            </div>
+
+            <div class="device-details__item">
+                <dt>Configuration</dt>
+                <dd id="device-enabled">—</dd>
+            </div>
+
+            <div class="device-details__item">
+                <dt>Connection</dt>
+                <dd id="device-connection">Unknown</dd>
+            </div>
+
+            <div
+                class="device-details__item"
+                id="device-power-item"
+                hidden
+            >
+                <dt>Power</dt>
+                <dd id="device-power">Unknown</dd>
+            </div>
+        </dl>
+    </section>
+
+    <section id="device-controls" hidden>
+        <h2>Controls</h2>
+
+        <button
+            id="device-power-toggle"
+            type="button"
+            disabled
+        >
+            Loading...
+        </button>
+
+        <p
+            id="device-control-message"
+            role="status"
+            aria-live="polite"
+        ></p>
+    </section>
+
+    <p id="device-error" role="alert" hidden></p>
 </section>

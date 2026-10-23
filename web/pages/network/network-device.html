@@ -1,6 +1,28 @@
-<section class="page-placeholder">
+
+<section class="page-section network-device-page">
     <header class="page-header">
-        <h1>Network device</h1>
-        <p>Network device details will be available here.</p>
+        <div>
+            <h1 id="network-device-name">Network device</h1>
+            <p id="network-device-status" role="status" aria-live="polite">
+                Loading device details...
+            </p>
+        </div>
     </header>
+
+    <section class="content-section">
+        <h2>Device information</h2>
+        <dl id="network-device-info" class="device-info"></dl>
+    </section>
+
+    <section
+        id="network-clients-section"
+        class="content-section"
+        hidden
+    >
+        <h2>Connected devices (DHCP)</h2>
+        <p id="network-clients-status" role="status" aria-live="polite">
+            Loading connected devices...
+        </p>
+        <div id="network-clients" class="table-container"></div>
+    </section>
 </section>

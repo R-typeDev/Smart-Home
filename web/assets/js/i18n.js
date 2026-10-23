@@ -1,4 +1,5 @@
-﻿let translations = {};
+﻿
+let translations = {};
 let currentLanguage = "en";
 
 export function getLanguage() {
@@ -23,12 +24,31 @@ export function applyTranslations(root = document) {
 
     document.documentElement.lang = currentLanguage;
 
-    const pageKey = location.pathname.replace(/^\/|\/$/g, "") || "dashboard";
-    const metadata = t(`pageMeta.${pageKey}`);
+    const path = location.pathname.replace(/\/+$/, "") || "/dashboard";
+    let pageKey = path.replace(/^\/+/, "");
 
-    document.title = `${metadata.title} | ${t("app.name")}`;
+    if (/^devices\/item\/[^/]+$/.test(pageKey)) {
+        pageKey = "devices";
+    } else if (/^network\/item\/[^/]+$/.test(pageKey)) {
+        pageKey = "network";
+    } else {
+        pageKey = pageKey.split("/")[0] || "dashboard";
+    }
 
-    let description = document.querySelector('meta[name="description"]');
+    let metadata = t(`pageMeta.${pageKey}`);
+
+    if (!metadata || typeof metadata !== "object") {
+        metadata = t("pageMeta.dashboard");
+    }
+
+    const appName = t("app.name");
+    const title = metadata.title || "Dashboard";
+
+    document.title = `${title} | ${appName}`;
+
+    let description = document.querySelector(
+        'meta[name="description"]'
+    );
 
     if (!description) {
         description = document.createElement("meta");
@@ -36,7 +56,7 @@ export function applyTranslations(root = document) {
         document.head.append(description);
     }
 
-    description.content = metadata.description;
+    description.content = metadata.description || "";
 }
 
 export async function setLanguage(language) {
@@ -44,31 +64,44 @@ export async function setLanguage(language) {
         ? language
         : "en";
 
-    const response = await fetch(`/locales/${selectedLanguage}.json`);
+    const response = await fetch(
+        `/locales/${selectedLanguage}.json`
+    );
 
     if (!response.ok) {
-        throw new Error(`Could not load language: ${selectedLanguage}`);
+        throw new Error(
+            `Could not load language: ${selectedLanguage}`
+        );
     }
 
     translations = await response.json();
     currentLanguage = selectedLanguage;
 
-    localStorage.setItem("smart-home-language", selectedLanguage);
+    localStorage.setItem(
+        "smart-home-language",
+        selectedLanguage
+    );
 
     const selector = document.querySelector("#language-select");
+
     if (selector) {
         selector.value = selectedLanguage;
     }
 
     applyTranslations();
 
-    window.dispatchEvent(new CustomEvent("language:changed", {
-        detail: { language: selectedLanguage }
-    }));
+    window.dispatchEvent(
+        new CustomEvent("language:changed", {
+            detail: { language: selectedLanguage }
+        })
+    );
 }
 
 export async function initI18n() {
-    const savedLanguage = localStorage.getItem("smart-home-language");
+    const savedLanguage = localStorage.getItem(
+        "smart-home-language"
+    );
+
     const initialLanguage = savedLanguage === "ru" ? "ru" : "en";
     const selector = document.querySelector("#language-select");
 
@@ -88,6 +121,9 @@ export async function initI18n() {
     try {
         await setLanguage(initialLanguage);
     } catch (error) {
-        console.error("Localization initialization failed:", error);
+        console.error(
+            "Localization initialization failed:",
+            error
+        );
     }
 }

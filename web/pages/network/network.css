@@ -1,1 +1,106 @@
-﻿/* Page-specific styles */
+﻿.network-page {
+    width: 100%;
+    min-width: 0;
+}
+
+.network-page .page-header {
+    margin-bottom: 24px;
+}
+
+.network-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.network-list__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-width: 0;
+    padding: 16px 18px;
+    background: var(--color-surface, #ffffff);
+    border: 1px solid var(--color-border, #e2e5e9);
+    border-radius: 10px;
+    transition: border-color 0.15s ease;
+}
+
+.network-list__item:hover {
+    border-color: var(--color-primary, #2477d4);
+}
+
+.network-list__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    color: var(--color-text, #222222);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.network-list__link:hover .network-list__name {
+    color: var(--color-primary, #2477d4);
+}
+
+.network-list__name {
+    overflow-wrap: anywhere;
+    transition: color 0.15s ease;
+}
+
+.network-list__arrow {
+    flex-shrink: 0;
+    color: var(--color-primary, #2477d4);
+    font-size: 20px;
+    line-height: 1;
+}
+
+.network-list__status {
+    flex-shrink: 0;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.network-list__status--enabled {
+    color: var(--color-success, #27834a);
+}
+
+.network-list__status--disabled {
+    color: var(--color-muted, #777777);
+}
+
+.network-message {
+    padding: 20px 0;
+    color: var(--color-muted, #777777);
+}
+
+.network-retry {
+    margin-top: 12px;
+    padding: 9px 16px;
+    color: var(--color-primary, #2477d4);
+    background: transparent;
+    border: 1px solid var(--color-border, #e2e5e9);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.network-retry:hover {
+    border-color: var(--color-primary, #2477d4);
+}
+
+.network-retry[hidden],
+.network-message[hidden] {
+    display: none;
+}
+
+@media (max-width: 480px) {
+    .network-list__item {
+        padding: 14px 12px;
+        gap: 10px;
+    }
+
+    .network-list__status {
+        font-size: 12px;
+    }
+}
