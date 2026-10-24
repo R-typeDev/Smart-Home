@@ -1,4 +1,11 @@
+
 const STATUS_REFRESH_INTERVAL = 5000;
+
+const COMMAND_LABELS = {
+    turn_on: "Turn on",
+    turn_off: "Turn off",
+    toggle: "Toggle",
+};
 
 export async function init() {
     const elements = {
@@ -44,13 +51,19 @@ export async function init() {
     }
 
     let device;
+    let commands = {};
+    let currentPower = null;
     let refreshTimer = null;
     let controlInProgress = false;
+    let commandContainer = null;
+    let deviceOnline = null;
 
     elements.error.hidden = true;
     elements.controls.hidden = true;
+    elements.powerItem.hidden = true;
     elements.description.hidden = false;
     elements.description.textContent = "Loading device information...";
+    elements.powerToggle.hidden = true;
 
     try {
         const response = await fetch(
@@ -70,14 +83,14 @@ export async function init() {
         device = await response.json();
 
         renderDevice();
+
+        await loadCommands();
         await refreshStatus();
 
         refreshTimer = window.setInterval(
             refreshStatus,
             STATUS_REFRESH_INTERVAL
         );
-
-        elements.powerToggle.addEventListener("click", togglePower);
     } catch (error) {
         showError(
             error instanceof Error
@@ -99,26 +112,126 @@ export async function init() {
             Number(device.enabled) === 1 ? "Enabled" : "Disabled";
 
         elements.description.hidden = true;
-
-        if (supportsPowerControl()) {
-            elements.powerItem.hidden = false;
-            elements.controls.hidden = false;
-            elements.power.textContent = "Unknown";
-            elements.powerToggle.textContent = "Loading...";
-            elements.powerToggle.disabled = true;
-        } else {
-            elements.powerItem.hidden = true;
-            elements.controls.hidden = true;
-        }
     }
 
-    function supportsPowerControl() {
-        return (
-            Number(device.enabled) === 1 &&
-            Boolean(device.external_id) &&
-            String(device.integration_id || "").toLowerCase() === "tuya" &&
-            String(device.type || "").toLowerCase() === "smart_plug"
+    async function loadCommands() {
+        const response = await fetch(
+            `/api/devices/${encodeURIComponent(deviceId)}/commands`
         );
+
+        if (!response.ok) {
+            throw new Error(
+                `Could not load device commands (HTTP ${response.status}).`
+            );
+        }
+
+        const result = await response.json();
+        commands = result.commands || {};
+
+        renderCommands();
+    }
+
+    function renderCommands() {
+        commandContainer?.remove();
+
+        commandContainer = document.createElement("div");
+        commandContainer.className = "device-command-list";
+
+        const hasOn = Object.hasOwn(commands, "turn_on");
+        const hasOff = Object.hasOwn(commands, "turn_off");
+
+        if (hasOn && hasOff) {
+            const button = document.createElement("button");
+
+            button.type = "button";
+            button.dataset.command = "power-toggle";
+
+            button.addEventListener("click", () => {
+                if (currentPower === null) {
+                    return;
+                }
+
+                const commandId = currentPower ? "turn_off" : "turn_on";
+                executeCommand(commandId, commands[commandId]);
+            });
+
+            commandContainer.appendChild(button);
+        }
+
+        for (const [commandId, definition] of Object.entries(commands)) {
+            if (
+                hasOn &&
+                hasOff &&
+                (commandId === "turn_on" || commandId === "turn_off")
+            ) {
+                continue;
+            }
+
+            const button = document.createElement("button");
+
+            button.type = "button";
+            button.dataset.command = commandId;
+            button.textContent =
+                definition.label ||
+                definition.name ||
+                COMMAND_LABELS[commandId] ||
+                commandId;
+
+            button.addEventListener("click", () => {
+                executeCommand(commandId, definition);
+            });
+
+            commandContainer.appendChild(button);
+        }
+
+        elements.controls.insertBefore(
+            commandContainer,
+            elements.powerToggle
+        );
+
+        elements.controls.hidden =
+            commandContainer.childElementCount === 0;
+
+        updateCommandButtons();
+        updatePowerButton();
+    }
+
+    function updateCommandButtons() {
+        if (!commandContainer) {
+            return;
+        }
+
+        for (const button of commandContainer.querySelectorAll("button")) {
+            button.disabled =
+                controlInProgress ||
+                Number(device.enabled) !== 1 ||
+                deviceOnline === false;
+        }
+
+        updatePowerButton();
+    }
+
+    function updatePowerButton() {
+        const button = commandContainer?.querySelector(
+            '[data-command="power-toggle"]'
+        );
+
+        if (!button) {
+            return;
+        }
+
+        button.textContent =
+            currentPower === null
+                ? "Loading status..."
+                : currentPower
+                  ? "Turn off"
+                  : "Turn on";
+
+        button.disabled =
+            currentPower === null ||
+            controlInProgress ||
+            Number(device.enabled) !== 1 ||
+            deviceOnline === false;
     }
 
     async function refreshStatus() {
@@ -135,6 +248,8 @@ export async function init() {
 
             const status = await response.json();
 
+            deviceOnline = status.online;
+
             elements.connection.textContent =
                 status.online === true
                     ? "Online"
@@ -142,33 +257,23 @@ export async function init() {
                       ? "Offline"
                       : "Unknown";
 
-            if (!supportsPowerControl()) {
-                return;
-            }
-
             if (typeof status.power === "boolean") {
+                currentPower = status.power;
+                elements.powerItem.hidden = false;
                 elements.power.textContent = status.power ? "On" : "Off";
-                elements.powerToggle.textContent = status.power
-                    ? "Turn off"
-                    : "Turn on";
-
-                elements.powerToggle.disabled =
-                    status.online !== true || controlInProgress;
             } else {
-                elements.power.textContent = "Unknown";
-                elements.powerToggle.textContent = "Power unavailable";
-                elements.powerToggle.disabled = true;
+                currentPower = null;
+                elements.powerItem.hidden = true;
             }
 
+            updateCommandButtons();
             elements.controlMessage.textContent = "";
         } catch (error) {
-            elements.connection.textContent = "Unknown";
+            deviceOnline = null;
+            currentPower = null;
 
-            if (supportsPowerControl()) {
-                elements.power.textContent = "Unknown";
-                elements.powerToggle.textContent = "Status unavailable";
-                elements.powerToggle.disabled = true;
-            }
+            elements.connection.textContent = "Unknown";
+            updateCommandButtons();
 
             elements.controlMessage.textContent =
                 error instanceof Error
@@ -177,49 +282,58 @@ export async function init() {
         }
     }
 
-    async function togglePower() {
+    async function executeCommand(commandId, definition) {
         if (
-            !supportsPowerControl() ||
             controlInProgress ||
-            elements.powerToggle.disabled
+            Number(device.enabled) !== 1 ||
+            deviceOnline === false
         ) {
             return;
         }
 
-        const currentPower = elements.power.textContent;
-
-        if (currentPower !== "On" && currentPower !== "Off") {
-            return;
-        }
-
-        const action = currentPower === "On" ? "off" : "on";
-
         controlInProgress = true;
-        elements.powerToggle.disabled = true;
-        elements.powerToggle.textContent = "Please wait...";
-        elements.controlMessage.textContent = "";
+        updateCommandButtons();
+        elements.controlMessage.textContent = "Executing command...";
 
         try {
+            const parameters = definition.parameters || {};
+            const options = { method: "POST" };
+
+            if (Object.keys(parameters).length > 0) {
+                options.headers = {
+                    "Content-Type": "application/json",
+                };
+                options.body = JSON.stringify(parameters);
+            }
+
             const response = await fetch(
-                `/api/devices/${encodeURIComponent(deviceId)}/${action}`,
-                { method: "POST" }
+                `/api/devices/${encodeURIComponent(deviceId)}/commands/${encodeURIComponent(commandId)}`,
+                options
             );
 
             if (!response.ok) {
+                const details = await response.json().catch(() => null);
+                const message =
+                    typeof details?.detail === "string"
+                        ? details.detail
+                        : `HTTP ${response.status}`;
+
                 throw new Error(
-                    `Could not ${action === "on" ? "turn on" : "turn off"} device (HTTP ${response.status}).`
+                    `Could not execute "${commandId}": ${message}`
                 );
             }
+
+            elements.controlMessage.textContent = "Command executed.";
 
             await refreshStatus();
         } catch (error) {
             elements.controlMessage.textContent =
                 error instanceof Error
                     ? error.message
-                    : "Could not change device power.";
+                    : "Could not execute device command.";
         } finally {
             controlInProgress = false;
-            await refreshStatus();
+            updateCommandButtons();
         }
     }
 
@@ -231,6 +345,7 @@ export async function init() {
         elements.error.textContent = message;
         elements.error.hidden = false;
         elements.controls.hidden = true;
+        elements.powerItem.hidden = true;
 
         if (refreshTimer !== null) {
             window.clearInterval(refreshTimer);
