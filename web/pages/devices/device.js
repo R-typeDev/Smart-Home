@@ -1,4 +1,3 @@
-
 const STATUS_REFRESH_INTERVAL = 5000;
 
 const COMMAND_LABELS = {
@@ -224,8 +223,8 @@ export async function init() {
             currentPower === null
                 ? "Loading status..."
                 : currentPower
-                  ? "Turn off"
-                  : "Turn on";
+                    ? "Turn off"
+                    : "Turn on";
 
         button.disabled =
             currentPower === null ||
@@ -237,7 +236,7 @@ export async function init() {
     async function refreshStatus() {
         try {
             const response = await fetch(
-                `/api/devices/${encodeURIComponent(deviceId)}/status`
+                `/api/devices/${encodeURIComponent(deviceId)}/state`
             );
 
             if (!response.ok) {
@@ -254,8 +253,8 @@ export async function init() {
                 status.online === true
                     ? "Online"
                     : status.online === false
-                      ? "Offline"
-                      : "Unknown";
+                        ? "Offline"
+                        : "Unknown";
 
             if (typeof status.power === "boolean") {
                 currentPower = status.power;

@@ -1,64 +1,49 @@
 
-import os
-
 import tinytuya
 
 
 class TuyaPlugIntegration:
     """Local integration for a Tuya Wi-Fi smart plug."""
 
-    def __init__(self) -> None:
-        self.device_id = os.getenv("TUYA_PLUG_ID")
-        self.local_key = os.getenv("TUYA_PLUG_LOCAL_KEY")
-        self.ip_address = os.getenv("TUYA_PLUG_IP")
-        self.version = os.getenv("TUYA_PLUG_VERSION", "3.5")
-
-        if not all(
-            [self.device_id, self.local_key, self.ip_address]
-        ):
+    def __init__(
+        self,
+        device_id: str,
+        ip_address: str,
+        local_key: str,
+        version: str = "3.5",
+    ) -> None:
+        if not all([device_id, ip_address, local_key]):
             raise RuntimeError(
-                "Tuya plug configuration is incomplete. "
-                "Check TUYA_PLUG_ID, TUYA_PLUG_LOCAL_KEY "
-                "and TUYA_PLUG_IP in .env."
+                "Tuya plug configuration is incomplete."
             )
 
         self.device = tinytuya.OutletDevice(
-            self.device_id,
-            self.ip_address,
-            self.local_key,
+            device_id,
+            ip_address,
+            local_key,
         )
-        self.device.set_version(float(self.version))
+        self.device.set_version(float(version))
         self.device.set_socketPersistent(False)
         self.device.set_socketTimeout(5)
 
-    def get_status(self) -> dict:
-        """Return the current status reported by the plug."""
-        result = self.device.status()
-
+    @staticmethod
+    def _validate_response(result: dict) -> dict:
         if not isinstance(result, dict):
             raise RuntimeError("Unexpected response from Tuya plug.")
 
         if "Error" in result or "Err" in result:
-            raise RuntimeError(
-                f"Tuya plug returned an error: {result}"
-            )
+            raise RuntimeError("Tuya plug returned an error.")
 
         return result
+
+    def get_status(self) -> dict:
+        """Return the current status reported by the plug."""
+        return self._validate_response(self.device.status())
 
     def turn_on(self) -> dict:
         """Turn the smart plug on."""
-        result = self.device.turn_on()
-        if not isinstance(result, dict):
-            raise RuntimeError("Unexpected response from Tuya plug.")
-        if "Error" in result or "Err" in result:
-            raise RuntimeError("Tuya plug returned an error.")
-        return result
+        return self._validate_response(self.device.turn_on())
 
     def turn_off(self) -> dict:
         """Turn the smart plug off."""
-        result = self.device.turn_off()
-        if not isinstance(result, dict):
-            raise RuntimeError("Unexpected response from Tuya plug.")
-        if "Error" in result or "Err" in result:
-            raise RuntimeError("Tuya plug returned an error.")
-        return result
+        return self._validate_response(self.device.turn_off())

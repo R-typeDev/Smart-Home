@@ -1,7 +1,45 @@
 
-import sqlite3
+import uuid
 
-from core.database.connection import get_connection
+from database.connection import get_connection
+
+
+def _resolve_instance_id(
+    integration_id: str,
+    integration_instance_id: str | None = None,
+) -> str | None:
+    if integration_instance_id:
+        with get_connection() as connection:
+            row = connection.execute(
+                """
+                SELECT id
+                FROM integration_instances
+                WHERE id = ? AND integration_id = ?
+                """,
+                (integration_instance_id, integration_id),
+            ).fetchone()
+
+        if row is None:
+            raise ValueError(
+                "Integration instance does not match the integration."
+            )
+
+        return row["id"]
+
+    with get_connection() as connection:
+        rows = connection.execute(
+            """
+            SELECT id
+            FROM integration_instances
+            WHERE integration_id = ? AND enabled = 1
+            """,
+            (integration_id,),
+        ).fetchall()
+
+    if len(rows) == 1:
+        return rows[0]["id"]
+
+    return None
 
 
 def get_devices() -> list[dict]:
@@ -18,13 +56,14 @@ def get_devices() -> list[dict]:
                 external_id,
                 room_id,
                 enabled,
-                created_at
+                created_at,
+                integration_instance_id
             FROM devices
-            ORDER BY name
+            ORDER BY name COLLATE NOCASE
             """
         ).fetchall()
 
-        return [dict(row) for row in rows]
+    return [dict(row) for row in rows]
 
 
 def get_device(device_id: str) -> dict | None:
@@ -41,119 +80,151 @@ def get_device(device_id: str) -> dict | None:
                 external_id,
                 room_id,
                 enabled,
-                created_at
+                created_at,
+                integration_instance_id
             FROM devices
             WHERE id = ?
             """,
             (device_id,),
         ).fetchone()
 
-        return dict(row) if row else None
+    return dict(row) if row else None
 
 
 def add_device(
-    device_id: str,
+    *,
     name: str,
     device_type: str,
+    integration_id: str,
     manufacturer: str | None = None,
     model: str | None = None,
-    integration_id: str | None = None,
     external_id: str | None = None,
     room_id: str | None = None,
-) -> bool:
-    if not all(
-        isinstance(value, str) and value.strip()
-        for value in (device_id, name, device_type)
-    ):
-        return False
+    enabled: bool = True,
+    integration_instance_id: str | None = None,
+    device_id: str | None = None,
+) -> dict:
+    resolved_instance_id = _resolve_instance_id(
+        integration_id,
+        integration_instance_id,
+    )
 
-    try:
-        with get_connection() as connection:
-            connection.execute(
-                """
-                INSERT INTO devices (
-                    id,
-                    name,
-                    type,
-                    manufacturer,
-                    model,
-                    integration_id,
-                    external_id,
-                    room_id
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    device_id.strip(),
-                    name.strip(),
-                    device_type.strip(),
-                    manufacturer.strip() if isinstance(manufacturer, str) and manufacturer.strip() else None,
-                    model.strip() if isinstance(model, str) and model.strip() else None,
-                    integration_id.strip() if isinstance(integration_id, str) and integration_id.strip() else None,
-                    external_id.strip() if isinstance(external_id, str) and external_id.strip() else None,
-                    room_id.strip() if isinstance(room_id, str) and room_id.strip() else None,
-                ),
+    new_device_id = device_id or str(uuid.uuid4())
+
+    with get_connection() as connection:
+        connection.execute(
+            """
+            INSERT INTO devices (
+                id,
+                name,
+                type,
+                manufacturer,
+                model,
+                integration_id,
+                external_id,
+                room_id,
+                enabled,
+                integration_instance_id
             )
-        return True
-    except sqlite3.IntegrityError:
-        return False
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                new_device_id,
+                name,
+                device_type,
+                manufacturer,
+                model,
+                integration_id,
+                external_id,
+                room_id,
+                int(enabled),
+                resolved_instance_id,
+            ),
+        )
+
+    device = get_device(new_device_id)
+
+    if device is None:
+        raise RuntimeError(
+            "The device was inserted but could not be read."
+        )
+
+    return device
 
 
-def update_device(
-    device_id: str,
-    name: str,
-    device_type: str,
-    manufacturer: str | None = None,
-    model: str | None = None,
-    integration_id: str | None = None,
-    external_id: str | None = None,
-    room_id: str | None = None,
-) -> bool:
-    if not all(
-        isinstance(value, str) and value.strip()
-        for value in (device_id, name, device_type)
+def update_device(device_id: str, **fields) -> dict | None:
+    allowed_fields = {
+        "name",
+        "type",
+        "manufacturer",
+        "model",
+        "integration_id",
+        "external_id",
+        "room_id",
+        "enabled",
+        "integration_instance_id",
+    }
+
+    updates = {
+        key: value
+        for key, value in fields.items()
+        if key in allowed_fields
+    }
+
+    if not updates:
+        return get_device(device_id)
+
+    current = get_device(device_id)
+
+    if current is None:
+        return None
+
+    integration_id = updates.get(
+        "integration_id",
+        current["integration_id"],
+    )
+
+    if (
+        "integration_id" in updates
+        or "integration_instance_id" in updates
     ):
-        return False
+        if "integration_instance_id" in updates:
+            requested_instance_id = updates["integration_instance_id"]
+        elif "integration_id" in updates:
+            requested_instance_id = None
+        else:
+            requested_instance_id = current["integration_instance_id"]
 
-    try:
-        with get_connection() as connection:
-            cursor = connection.execute(
-                """
-                UPDATE devices
-                SET name = ?,
-                    type = ?,
-                    manufacturer = ?,
-                    model = ?,
-                    integration_id = ?,
-                    external_id = ?,
-                    room_id = ?
-                WHERE id = ?
-                """,
-                (
-                    name.strip(),
-                    device_type.strip(),
-                    manufacturer.strip() if isinstance(manufacturer, str) and manufacturer.strip() else None,
-                    model.strip() if isinstance(model, str) and model.strip() else None,
-                    integration_id.strip() if isinstance(integration_id, str) and integration_id.strip() else None,
-                    external_id.strip() if isinstance(external_id, str) and external_id.strip() else None,
-                    room_id.strip() if isinstance(room_id, str) and room_id.strip() else None,
-                    device_id.strip(),
-                ),
-            )
+        updates["integration_instance_id"] = _resolve_instance_id(
+            integration_id,
+            requested_instance_id,
+        )
 
-            return cursor.rowcount > 0
+    if "enabled" in updates:
+        updates["enabled"] = int(bool(updates["enabled"]))
 
-    except sqlite3.IntegrityError:
-        return False
+    assignments = ", ".join(
+        f'"{field}" = ?'
+        for field in updates
+    )
+
+    values = list(updates.values())
+    values.append(device_id)
+
+    with get_connection() as connection:
+        connection.execute(
+            f"""
+            UPDATE devices
+            SET {assignments}
+            WHERE id = ?
+            """,
+            values,
+        )
+
+    return get_device(device_id)
 
 
-def set_device_enabled(
-    device_id: str,
-    enabled: bool,
-) -> bool:
-    if not isinstance(enabled, bool):
-        return False
-
+def set_device_enabled(device_id: str, enabled: bool) -> bool:
     with get_connection() as connection:
         cursor = connection.execute(
             """
@@ -164,17 +235,14 @@ def set_device_enabled(
             (int(enabled), device_id),
         )
 
-        return cursor.rowcount > 0
+    return cursor.rowcount > 0
 
 
 def delete_device(device_id: str) -> bool:
     with get_connection() as connection:
         cursor = connection.execute(
-            """
-            DELETE FROM devices
-            WHERE id = ?
-            """,
+            "DELETE FROM devices WHERE id = ?",
             (device_id,),
         )
 
-        return cursor.rowcount > 0
+    return cursor.rowcount > 0

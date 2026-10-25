@@ -1,4 +1,3 @@
-
 export function init() {
     const deviceName = document.getElementById("network-device-name");
     const deviceStatus = document.getElementById("network-device-status");
@@ -48,7 +47,7 @@ export function init() {
 
         const columns = [
             ...new Set(
-                clients.flatMap(client =>
+                clients.flatMap((client) =>
                     client && typeof client === "object"
                         ? Object.keys(client)
                         : ["Device"]
@@ -100,39 +99,34 @@ export function init() {
         clientsStatus.textContent = `Connected clients: ${clients.length}`;
     }
 
+    async function fetchJson(url) {
+        const response = await fetch(url);
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            const error = new Error(
+                result.detail || `Request failed: ${response.status}`
+            );
+
+            error.status = response.status;
+            throw error;
+        }
+
+        return result;
+    }
+
     async function loadDeviceDetails() {
         if (!deviceId) {
             deviceStatus.textContent = "Device ID is missing.";
             return;
         }
 
+        const baseUrl = `/api/devices/${encodeURIComponent(deviceId)}`;
+
         try {
-            const response = await fetch(
-                `/api/network/${encodeURIComponent(deviceId)}`
-            );
-
-            const result = await response.json().catch(() => ({}));
-
-            if (!response.ok) {
-                throw new Error(result.detail || `Request failed: ${response.status}`);
-            }
-
-            const device = result.device;
-
-            if (!device) {
-                throw new Error("Device information was not returned by the API.");
-            }
+            const device = await fetchJson(baseUrl);
 
             deviceName.textContent = device.name || "Network device";
-
-            deviceStatus.textContent =
-                result.online === true
-                    ? "Router is online."
-                    : result.online === false
-                        ? "Router is offline."
-                        : result.integration_supported
-                            ? "Connection status unavailable."
-                            : "No network status integration is configured for this device.";
 
             deviceInfo.replaceChildren();
 
@@ -141,7 +135,43 @@ export function init() {
             addInfoRow("Manufacturer", device.manufacturer);
             addInfoRow("Model", device.model);
             addInfoRow("Integration", device.integration_id);
-            addInfoRow("Enabled", device.enabled === 1 ? "Yes" : "No");
+            addInfoRow(
+                "Enabled",
+                device.enabled === 1 || device.enabled === true ? "Yes" : "No"
+            );
+
+            if (
+                device.type !== "router" &&
+                device.type !== "access_point" &&
+                device.type !== "switch"
+            ) {
+                deviceStatus.textContent =
+                    "This device is not a network device.";
+                clientsSection.hidden = true;
+                return;
+            }
+
+            if (device.enabled !== 1 && device.enabled !== true) {
+                deviceStatus.textContent = "Device is disabled.";
+                clientsSection.hidden = true;
+                return;
+            }
+
+            let state = null;
+
+            try {
+                state = await fetchJson(`${baseUrl}/state`);
+
+                deviceStatus.textContent =
+                    state.online === true
+                        ? "Device is online."
+                        : state.online === false
+                            ? "Device is offline."
+                            : "Device state is unavailable.";
+            } catch (error) {
+                console.error("Could not load device state:", error);
+                deviceStatus.textContent = "Device state is unavailable.";
+            }
 
             if (device.type !== "router") {
                 clientsSection.hidden = true;
@@ -150,15 +180,26 @@ export function init() {
 
             clientsSection.hidden = false;
             clientsContainer.replaceChildren();
+            clientsStatus.textContent = "Loading connected devices…";
 
-            if (result.online === false) {
+            if (state && state.online === false) {
                 clientsStatus.textContent =
                     "DHCP clients are unavailable while the router is offline.";
-            } else if (result.integration_supported) {
-                renderClients(result.dhcp_clients);
-            } else {
+                return;
+            }
+
+            try {
+                const result = await fetchJson(`${baseUrl}/clients`);
+                renderClients(result.clients);
+            } catch (error) {
+                console.error("Could not load DHCP clients:", error);
+
+                clientsContainer.replaceChildren();
+
                 clientsStatus.textContent =
-                    "DHCP client information is not available for this integration.";
+                    error.status === 409
+                        ? "DHCP client information is not supported by this device."
+                        : "Could not load DHCP clients.";
             }
         } catch (error) {
             console.error("Could not load network device:", error);

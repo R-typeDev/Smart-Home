@@ -1,9 +1,11 @@
-
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from config import WEB_DIR
-from routes import devices, network, pages
+from routes import devices, pages
+
+from integrations.bootstrap import register_integrations
+from database.schema import initialize_database
 
 
 app = FastAPI(
@@ -11,6 +13,9 @@ app = FastAPI(
     description="API for the Smart Home platform",
     version="0.1.0",
 )
+
+register_integrations()
+initialize_database()
 
 
 @app.get("/health")
@@ -21,7 +26,6 @@ def health():
 # Application routes
 
 app.include_router(pages.router)
-app.include_router(network.router)
 app.include_router(devices.router)
 
 

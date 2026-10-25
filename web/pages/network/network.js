@@ -1,5 +1,11 @@
-﻿const API_URL = "/api/network";
+﻿const API_URL = "/api/devices";
 const DEVICE_URL = "/network/item/";
+
+const NETWORK_DEVICE_TYPES = new Set([
+    "router",
+    "access_point",
+    "switch"
+]);
 
 export function init() {
     const list = document.getElementById("network-list");
@@ -25,23 +31,28 @@ export function init() {
             const response = await fetch(API_URL);
 
             if (!response.ok) {
-                throw new Error("Could not load network devices.");
+                throw new Error("Could not load devices.");
             }
 
             const devices = await response.json();
 
             if (!Array.isArray(devices)) {
-                throw new Error("Invalid network devices response.");
+                throw new Error("Invalid devices response.");
             }
 
-            if (devices.length === 0) {
-                message.textContent = "No network devices have been added yet.";
+            const networkDevices = devices.filter((device) =>
+                NETWORK_DEVICE_TYPES.has(device.type)
+            );
+
+            if (networkDevices.length === 0) {
+                message.textContent =
+                    "No network devices have been added yet.";
                 return;
             }
 
             message.hidden = true;
 
-            devices.forEach((device) => {
+            networkDevices.forEach((device) => {
                 list.appendChild(createDeviceRow(device));
             });
         } catch {
