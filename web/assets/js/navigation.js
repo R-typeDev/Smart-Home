@@ -51,7 +51,7 @@ function resolveRoute(path) {
                 name: "device-detail",
                 html: "/pages/devices/device.html",
                 js: "/pages/devices/device.js",
-                css: "/pages/devices/devices.css"
+                css: "/pages/devices/device.css"
             }
         };
     }
@@ -65,7 +65,7 @@ function resolveRoute(path) {
                 name: "network-device-detail",
                 html: "/pages/network/network-device.html",
                 js: "/pages/network/network-device.js",
-                css: "/pages/network/network.css"
+                css: "/pages/network/network-device.css"
             }
         };
     }
