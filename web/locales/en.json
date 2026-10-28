@@ -15,7 +15,12 @@
         "title": "Dashboard",
         "description": "An overview of your smart home system.",
         "welcome": "Welcome",
-        "empty": "Your smart home's key information will appear here."
+        "empty": "Your smart home's key information will appear here.",
+        "systemStatus": "System status",
+        "checking": "Checking system status...",
+        "online": "System is running",
+        "offline": "System unavailable",
+        "lastCheck": "Last check:"
     },
     "pages": {
         "devices": "Devices",
