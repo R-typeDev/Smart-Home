@@ -1,7 +1,10 @@
 ﻿
+import { t } from "../../assets/js/i18n.js";
+
 let statusTimer = null;
 let activeController = null;
 let pageInstance = 0;
+let languageChangeHandler = null;
 
 export function init() {
     if (statusTimer !== null) {
@@ -12,6 +15,14 @@ export function init() {
     if (activeController !== null) {
         activeController.abort();
         activeController = null;
+    }
+
+    if (languageChangeHandler !== null) {
+        window.removeEventListener(
+            "language:changed",
+            languageChangeHandler
+        );
+        languageChangeHandler = null;
     }
 
     const indicator = document.getElementById(
@@ -30,6 +41,44 @@ export function init() {
 
     const currentInstance = ++pageInstance;
     const checkInterval = 10000;
+    let currentStatus = "checking";
+
+    function updateStatus(status) {
+        currentStatus = status;
+
+        const statusClasses = {
+            checking: "",
+            online: "online",
+            offline: "offline"
+        };
+
+        const statusKeys = {
+            checking: "dashboard.checking",
+            online: "dashboard.online",
+            offline: "dashboard.offline"
+        };
+
+        const key = statusKeys[status];
+
+        indicator.className = [
+            "system-status__indicator",
+            statusClasses[status]
+        ].filter(Boolean).join(" ");
+
+        indicator.setAttribute("aria-label", t(key));
+
+        message.dataset.i18n = key;
+        message.textContent = t(key);
+    }
+
+    languageChangeHandler = () => {
+        updateStatus(currentStatus);
+    };
+
+    window.addEventListener(
+        "language:changed",
+        languageChangeHandler
+    );
 
     async function checkStatus() {
         if (
@@ -65,16 +114,7 @@ export function init() {
                 throw new Error("System is not healthy");
             }
 
-            indicator.className =
-                "system-status__indicator online";
-
-            indicator.setAttribute(
-                "aria-label",
-                "System online"
-            );
-
-            message.dataset.i18n = "dashboard.online";
-            message.textContent = "System is running";
+            updateStatus("online");
         } catch (error) {
             if (
                 error.name === "AbortError" ||
@@ -83,16 +123,7 @@ export function init() {
                 return;
             }
 
-            indicator.className =
-                "system-status__indicator offline";
-
-            indicator.setAttribute(
-                "aria-label",
-                "System offline"
-            );
-
-            message.dataset.i18n = "dashboard.offline";
-            message.textContent = "System unavailable";
+            updateStatus("offline");
         } finally {
             if (activeController === controller) {
                 activeController = null;
@@ -118,5 +149,6 @@ export function init() {
         }
     }
 
+    updateStatus("checking");
     checkStatus();
 }
