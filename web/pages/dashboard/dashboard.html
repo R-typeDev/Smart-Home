@@ -1,36 +1,18 @@
 ﻿<section class="dashboard">
     <header class="dashboard__header">
         <h1 data-i18n="dashboard.title">Dashboard</h1>
-        <p class="dashboard__subtitle" data-i18n="dashboard.description">
+
+        <p
+            class="dashboard__subtitle"
+            data-i18n="dashboard.description"
+        >
             An overview of your smart home system.
         </p>
     </header>
 
-    <section class="system-status" aria-labelledby="system-status-title">
-        <div
-            class="system-status__indicator"
-            id="system-status-indicator"
-            role="status"
-            aria-label="Checking system status"
-        ></div>
-
-        <div class="system-status__content">
-            <h2
-                id="system-status-title"
-                data-i18n="dashboard.systemStatus"
-            >System status</h2>
-
-            <p
-                class="system-status__message"
-                id="system-status-message"
-                aria-live="polite"
-                data-i18n="dashboard.checking"
-            >Checking system status...</p>
-
-            <p class="system-status__last-check">
-                <span data-i18n="dashboard.lastCheck">Last check:</span>
-                <time id="system-status-last-check">—</time>
-            </p>
-        </div>
-    </section>
+    <div
+        class="dashboard-grid"
+        id="dashboard-grid"
+        aria-label="Smart home overview"
+    ></div>
 </section>

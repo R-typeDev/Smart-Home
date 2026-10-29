@@ -4,6 +4,7 @@
     flex-direction: column;
     gap: 24px;
     width: 100%;
+    min-width: 0;
 }
 
 .dashboard__header {
@@ -22,25 +23,58 @@
     margin: 0;
     color: var(--text-secondary, #687386);
     font-size: 14px;
+    line-height: 1.5;
 }
 
-.system-status {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
+    align-items: stretch;
     width: 100%;
-    box-sizing: border-box;
+}
+
+.dashboard-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 190px;
     padding: 20px;
+    box-sizing: border-box;
     border: 1px solid var(--border-color, #dfe3e8);
     border-radius: 12px;
     background: var(--card-background, #ffffff);
 }
 
+.dashboard-card__title {
+    margin: 0 0 12px;
+    font-size: 16px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.dashboard-card__description {
+    margin: 0;
+    color: var(--text-secondary, #687386);
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.system-status {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: auto;
+    padding-top: 16px;
+    min-width: 0;
+}
+
 .system-status__indicator {
+    flex-shrink: 0;
     width: 12px;
     height: 12px;
-    margin-top: 5px;
-    flex-shrink: 0;
+    margin-top: 4px;
     border-radius: 50%;
     background: #d4a017;
     box-shadow: 0 0 0 4px rgb(212 160 23 / 12%);
@@ -63,23 +97,27 @@
     min-width: 0;
 }
 
-.system-status__content h2 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-}
-
 .system-status__message {
     margin: 0;
     font-size: 14px;
     line-height: 1.5;
+    overflow-wrap: anywhere;
 }
 
 .system-status__last-check {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
     margin: 0;
     color: var(--text-secondary, #687386);
     font-size: 12px;
     line-height: 1.5;
+}
+
+@media (max-width: 1100px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 @media (max-width: 600px) {
@@ -91,7 +129,13 @@
         font-size: 24px;
     }
 
-    .system-status {
+    .dashboard-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+    }
+
+    .dashboard-card {
+        min-height: 160px;
         padding: 16px;
     }
 }
