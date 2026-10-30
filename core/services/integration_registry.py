@@ -1,9 +1,29 @@
+from typing import Any, Protocol
 
-from integrations.contract import DeviceIntegration
+
+class DeviceIntegration(Protocol):
+    @property
+    def integration_id(self) -> str: ...
+
+    def get_capabilities(self, device: dict[str, Any]) -> set[str]: ...
+
+    def get_commands(
+        self,
+        device: dict[str, Any],
+    ) -> dict[str, dict[str, Any]]: ...
+
+    def get_state(self, device: dict[str, Any]) -> dict[str, Any]: ...
+
+    def execute(
+        self,
+        device: dict[str, Any],
+        command: str,
+        parameters: dict[str, Any] | None = None,
+    ) -> dict[str, Any]: ...
 
 
 class IntegrationRegistry:
-    """Registry for device integrations available to Core."""
+    """Registry of available integration modules."""
 
     def __init__(self) -> None:
         self._integrations: dict[str, DeviceIntegration] = {}
@@ -21,6 +41,9 @@ class IntegrationRegistry:
 
         self._integrations[integration_id] = integration
 
+    def unregister(self, integration_id: str) -> bool:
+        return self._integrations.pop(integration_id, None) is not None
+
     def get(self, integration_id: str) -> DeviceIntegration:
         integration = self._integrations.get(integration_id)
 
@@ -32,17 +55,13 @@ class IntegrationRegistry:
         return integration
 
     def get_all(self) -> list[DeviceIntegration]:
-        """Return all registered integration adapters."""
         return list(self._integrations.values())
 
-    def get_capabilities(self, device: dict) -> set[str]:
-        integration_id = device.get("integration_id")
+    def get_all_ids(self) -> list[str]:
+        return sorted(self._integrations)
 
-        if not integration_id:
-            return set()
-
-        integration = self.get(integration_id)
-        return integration.get_capabilities(device)
+    def is_registered(self, integration_id: str) -> bool:
+        return integration_id in self._integrations
 
 
 integration_registry = IntegrationRegistry()

@@ -1,83 +1,62 @@
 from typing import Any
 
-from database.connection import get_connection
+from database.devices import get_device_source_secret
+from services.secret_service import decrypt_secret
 from integrations.tuya.plug import TuyaPlugIntegration
 
 
-class TuyaIntegrationAdapter:
-    """Tuya adapter using device-specific settings."""
+class TuyaLocalAdapter:
+    """Tuya Local integration adapter."""
 
-    integration_id = "tuya"
+    integration_id = "tuya_local"
 
-    def _settings(self, device: dict[str, Any]) -> dict[str, str]:
+    def _get_client(self, device: dict[str, Any]) -> TuyaPlugIntegration:
         if device.get("type") != "smart_plug":
-            raise ValueError("Tuya integration only supports smart plugs.")
+            raise ValueError("Unsupported Tuya Local device type.")
 
-        device_id = device.get("id")
+        instance_id = device.get("instance_id")
         external_id = device.get("external_id")
 
-        if not device_id or not external_id:
-            raise ValueError("Tuya device identifiers are missing.")
+        properties = device.get("properties", {})
 
-        with get_connection() as connection:
-            rows = connection.execute(
-                """
-                SELECT setting_key, setting_value
-                FROM integration_settings
-                WHERE device_id = ?
-                  AND integration_id = ?
-                """,
-                (device_id, self.integration_id),
-            ).fetchall()
+        ip_address = properties.get("ip_address", {}).get("value")
+        version = properties.get("tuya_version", {}).get("value", "3.5")
 
-        settings = {
-            row["setting_key"]: row["setting_value"]
-            for row in rows
-            if row["setting_value"] is not None
-        }
+        encrypted_key = get_device_source_secret(
+            device["id"],
+            instance_id,
+            "local_key",
+        )
 
-        required = ("plug_ip", "plug_local_key")
-        missing = [
-            key for key in required
-            if not settings.get(key)
-        ]
+        if not encrypted_key:
+            raise RuntimeError("Tuya Local Key is not configured.")
 
-        if missing:
-            raise RuntimeError(
-                "Tuya device settings are incomplete in SQLite: "
-                + ", ".join(missing)
-            )
-
-        settings.setdefault("plug_version", "3.5")
-        return settings
-
-    def _client(self, device: dict[str, Any]) -> TuyaPlugIntegration:
-        settings = self._settings(device)
+        local_key = decrypt_secret(encrypted_key)
 
         return TuyaPlugIntegration(
-            device_id=device["external_id"],
-            ip_address=settings["plug_ip"],
-            local_key=settings["plug_local_key"],
-            version=settings["plug_version"],
+            device_id=external_id,
+            ip_address=ip_address,
+            local_key=local_key,
+            version=version,
         )
 
     def get_capabilities(self, device: dict[str, Any]) -> set[str]:
-        self._settings(device)
         return {"switch"}
 
     def get_commands(
         self,
         device: dict[str, Any],
     ) -> dict[str, dict[str, Any]]:
-        self._settings(device)
         return {
-            "turn_on": {"parameters": {}},
-            "turn_off": {"parameters": {}},
+            "turn_on": {"name": "Turn on"},
+            "turn_off": {"name": "Turn off"},
         }
 
     def get_state(self, device: dict[str, Any]) -> dict[str, Any]:
-        result = self._client(device).get_status()
-        dps = result.get("dps", {})
+        client = self._get_client(device)
+        status = client.get_status()
+
+        dps = status.get("dps", {})
 
         return {
             "online": True,
@@ -90,15 +69,13 @@ class TuyaIntegrationAdapter:
         command: str,
         parameters: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        client = self._client(device)
+        client = self._get_client(device)
 
         if command == "turn_on":
             client.turn_on()
         elif command == "turn_off":
             client.turn_off()
         else:
-            raise ValueError(
-                f"Unsupported command for Tuya plug: {command}"
-            )
+            raise ValueError(f"Unsupported command: {command}")
 
         return self.get_state(device)

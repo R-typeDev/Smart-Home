@@ -3,10 +3,10 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from core.database.devices import add_device, get_device, get_devices
-from core.database.integrations import get_integrations
+from database.devices import add_device, get_device, get_devices
+from database.integrations import get_integrations, get_integration_instance
 from services.device_service import device_service
-from services.integration_registry import integration_registry
+
 
 router = APIRouter()
 
@@ -17,99 +17,29 @@ def get_enabled_device(device_id: str) -> dict[str, Any]:
     if device is None:
         raise HTTPException(status_code=404, detail="Device not found.")
 
-    if device["enabled"] != 1:
+    if not device["enabled"]:
         raise HTTPException(status_code=409, detail="Device is disabled.")
-
-    if not device.get("integration_id"):
-        raise HTTPException(
-            status_code=409,
-            detail="Device has no assigned integration.",
-        )
 
     return device
 
 
-def get_device_capabilities(device: dict[str, Any]) -> set[str]:
-    try:
-        return device_service.get_capabilities(device)
-    except LookupError as error:
-        raise HTTPException(
+def _handle_device_error(error: Exception) -> HTTPException:
+    if isinstance(error, LookupError):
+        return HTTPException(
             status_code=503,
             detail="Device integration is not available.",
-        ) from error
-    except ValueError as error:
-        raise HTTPException(status_code=409, detail=str(error)) from error
-    except Exception as error:
-        raise HTTPException(
-            status_code=502,
-            detail=(
-                "Could not retrieve device capabilities: "
-                f"{type(error).__name__}"
-            ),
-        ) from error
+        )
 
+    if isinstance(error, ValueError):
+        return HTTPException(status_code=409, detail=str(error))
 
-def get_device_commands(
-    device: dict[str, Any],
-) -> dict[str, dict[str, Any]]:
-    try:
-        return device_service.get_commands(device)
-    except LookupError as error:
-        raise HTTPException(
-            status_code=503,
-            detail="Device integration is not available.",
-        ) from error
-    except ValueError as error:
-        raise HTTPException(status_code=409, detail=str(error)) from error
-    except RuntimeError as error:
-        raise HTTPException(status_code=503, detail=str(error)) from error
-    except Exception as error:
-        raise HTTPException(
-            status_code=502,
-            detail=f"Could not retrieve device commands: {type(error).__name__}",
-        ) from error
+    if isinstance(error, RuntimeError):
+        return HTTPException(status_code=503, detail=str(error))
 
-
-def get_device_state(device: dict[str, Any]) -> dict[str, Any]:
-    try:
-        return device_service.get_state(device)
-    except LookupError as error:
-        raise HTTPException(
-            status_code=503,
-            detail="Device integration is not available.",
-        ) from error
-    except ValueError as error:
-        raise HTTPException(status_code=409, detail=str(error)) from error
-    except RuntimeError as error:
-        raise HTTPException(status_code=503, detail=str(error)) from error
-    except Exception as error:
-        raise HTTPException(
-            status_code=502,
-            detail=f"Could not retrieve device state: {type(error).__name__}",
-        ) from error
-
-
-def execute_device_command(
-    device: dict[str, Any],
-    command: str,
-    parameters: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    try:
-        return device_service.execute(device, command, parameters)
-    except LookupError as error:
-        raise HTTPException(
-            status_code=503,
-            detail="Device integration is not available.",
-        ) from error
-    except ValueError as error:
-        raise HTTPException(status_code=409, detail=str(error)) from error
-    except RuntimeError as error:
-        raise HTTPException(status_code=503, detail=str(error)) from error
-    except Exception as error:
-        raise HTTPException(
-            status_code=502,
-            detail=f"Could not execute device command: {type(error).__name__}",
-        ) from error
+    return HTTPException(
+        status_code=502,
+        detail=f"Device operation failed: {type(error).__name__}",
+    )
 
 
 @router.get("/api/devices")
@@ -119,129 +49,61 @@ def get_devices_list():
 
 @router.post("/api/devices")
 def create_device(device: dict[str, Any]):
-    required_fields = ("name", "type")
+    name = device.get("name")
+    device_type = device.get("type")
 
-    if not all(
-        isinstance(device.get(field), str) and device[field].strip()
-        for field in required_fields
-    ):
-        raise HTTPException(
-            status_code=422,
-            detail="Device name and type are required.",
-        )
+    if not isinstance(name, str) or not name.strip():
+        raise HTTPException(status_code=422, detail="Device name is required.")
+
+    if not isinstance(device_type, str) or not device_type.strip():
+        raise HTTPException(status_code=422, detail="Device type is required.")
 
     device_id = str(uuid.uuid4())
 
-    success = add_device(
-        device_id=device_id,
-        name=device["name"],
-        device_type=device["type"],
-        manufacturer=device.get("manufacturer"),
-        model=device.get("model"),
-        integration_id=device.get("integration_id"),
-        external_id=device.get("external_id"),
-        room_id=device.get("room_id"),
-    )
-
-    if not success:
-        raise HTTPException(
-            status_code=409,
-            detail="Could not add device. Check its ID and integration.",
+    try:
+        created = add_device(
+            device_id=device_id,
+            name=name,
+            device_type=device_type,
+            manufacturer=device.get("manufacturer"),
+            model=device.get("model"),
+            room_id=device.get("room_id"),
+            display_code=device.get("display_code"),
+            enabled=device.get("enabled", True),
         )
 
-    return {
-        "success": True,
-        "device": get_device(device_id),
-    }
+        instance_id = device.get("instance_id")
+        external_id = device.get("external_id")
 
+        if instance_id or external_id:
+            if not instance_id or not external_id:
+                raise ValueError(
+                    "Both integration connection and external device ID are required."
+                )
 
-@router.get("/api/devices/{device_id}/capabilities")
-def get_device_capabilities_route(device_id: str):
-    device = get_enabled_device(device_id)
+            instance = get_integration_instance(instance_id)
 
-    return {
-        "device_id": device["id"],
-        "capabilities": sorted(get_device_capabilities(device)),
-    }
+            if instance is None:
+                raise ValueError("Integration connection not found.")
 
+            from database.devices import add_device_source
 
-@router.get("/api/devices/{device_id}/commands")
-def get_device_commands_route(device_id: str):
-    device = get_enabled_device(device_id)
+            add_device_source(
+                device_id=created["id"],
+                instance_id=instance_id,
+                external_id=external_id,
+                source_name=device.get("source_name"),
+                enabled=device.get("source_enabled", True),
+                priority=device.get("priority", 100),
+            )
 
-    return {
-        "device_id": device["id"],
-        "commands": get_device_commands(device),
-    }
-
-
-@router.get("/api/devices/{device_id}/state")
-def get_device_state_route(device_id: str):
-    device = get_enabled_device(device_id)
-
-    return {
-        "device_id": device["id"],
-        "name": device["name"],
-        **get_device_state(device),
-    }
-
-
-@router.post("/api/devices/{device_id}/commands/{command}")
-def execute_device_command_route(
-    device_id: str,
-    command: str,
-    parameters: dict[str, Any] | None = None,
-):
-    device = get_enabled_device(device_id)
-
-    return execute_device_command(device, command, parameters)
-
-
-@router.get("/api/devices/{device_id}/clients")
-def get_device_clients(device_id: str):
-    device = get_enabled_device(device_id)
-
-    try:
-        integration = integration_registry.get(device["integration_id"])
-    except LookupError as error:
-        raise HTTPException(
-            status_code=503,
-            detail="Device integration is not available.",
-        ) from error
-
-    get_clients = getattr(integration, "get_dhcp_clients", None)
-
-    if not callable(get_clients):
-        raise HTTPException(
-            status_code=409,
-            detail="This device does not support retrieving connected clients.",
-        )
-
-    try:
         return {
-            "device_id": device["id"],
-            "clients": get_clients(device),
+            "success": True,
+            "device": get_device(created["id"]),
         }
-    except LookupError as error:
-        raise HTTPException(
-            status_code=503,
-            detail="Device integration is not available.",
-        ) from error
-    except RuntimeError as error:
-        raise HTTPException(status_code=503, detail=str(error)) from error
-    except Exception as error:
-        raise HTTPException(
-            status_code=502,
-            detail=(
-                "Could not retrieve connected clients: "
-                f"{type(error).__name__}"
-            ),
-        ) from error
 
-
-@router.get("/api/integrations")
-def get_integrations_list():
-    return get_integrations()
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
 
 
 @router.get("/api/devices/{device_id}")
@@ -252,3 +114,76 @@ def get_device_by_id(device_id: str):
         raise HTTPException(status_code=404, detail="Device not found.")
 
     return device
+
+
+@router.get("/api/devices/{device_id}/capabilities")
+def get_device_capabilities_route(device_id: str):
+    device = get_enabled_device(device_id)
+
+    try:
+        capabilities = device_service.get_capabilities(device)
+        return {
+            "device_id": device["id"],
+            "capabilities": sorted(capabilities),
+        }
+    except Exception as error:
+        raise _handle_device_error(error) from error
+
+
+@router.get("/api/devices/{device_id}/commands")
+def get_device_commands_route(device_id: str):
+    device = get_enabled_device(device_id)
+
+    try:
+        return {
+            "device_id": device["id"],
+            "commands": device_service.get_commands(device),
+        }
+    except Exception as error:
+        raise _handle_device_error(error) from error
+
+
+@router.get("/api/devices/{device_id}/state")
+def get_device_state_route(device_id: str):
+    device = get_enabled_device(device_id)
+
+    try:
+        return {
+            "device_id": device["id"],
+            "name": device["name"],
+            **device_service.get_state(device),
+        }
+    except Exception as error:
+        raise _handle_device_error(error) from error
+
+
+@router.post("/api/devices/{device_id}/commands/{command}")
+def execute_device_command_route(
+    device_id: str,
+    command: str,
+    parameters: dict[str, Any] | None = None,
+):
+    device = get_enabled_device(device_id)
+
+    try:
+        return device_service.execute(device, command, parameters)
+    except Exception as error:
+        raise _handle_device_error(error) from error
+
+
+@router.get("/api/devices/{device_id}/clients")
+def get_device_clients(device_id: str):
+    device = get_enabled_device(device_id)
+
+    try:
+        return {
+            "device_id": device["id"],
+            "clients": device_service.get_dhcp_clients(device),
+        }
+    except Exception as error:
+        raise _handle_device_error(error) from error
+
+
+@router.get("/api/integrations")
+def get_integrations_list():
+    return get_integrations()

@@ -1,64 +1,43 @@
-
 from typing import Any
 
-from database.connection import get_connection
+from database.integrations import (
+    get_integration_settings,
+    get_integration_secret,
+)
 from integrations.tplink_router.router import TPLinkRouterIntegration
+from services.secret_service import decrypt_secret
 
 
 class TPLinkRouterAdapter:
-    """TP-Link router adapter using device-specific settings."""
+    """TP-Link router integration adapter."""
 
     integration_id = "tplink_router"
 
-    def _settings(self, device: dict[str, Any]) -> dict[str, str]:
-        if device.get("type") != "router":
-            raise ValueError("This integration only supports routers.")
+    def _get_client(self, device: dict[str, Any]) -> TPLinkRouterIntegration:
+        instance_id = device.get("instance_id")
 
-        device_id = device.get("id")
-        if not device_id:
-            raise RuntimeError("Router has no device UUID.")
+        if not instance_id:
+            raise RuntimeError("TP-Link connection is not configured.")
 
-        with get_connection() as connection:
-            rows = connection.execute(
-                """
-                SELECT setting_key, setting_value
-                FROM integration_settings
-                WHERE device_id = ?
-                  AND integration_id = ?
-                """,
-                (device_id, self.integration_id),
-            ).fetchall()
+        settings = get_integration_settings(instance_id)
 
-        settings = {
-            row["setting_key"]: row["setting_value"]
-            for row in rows
-            if row["setting_value"] is not None
-        }
+        host = settings.get("host", {}).get("value")
+        username = settings.get("username", {}).get("value")
 
-        required = ("host", "username", "password")
-        missing = [
-            key for key in required
-            if not settings.get(key)
-        ]
+        encrypted_password = get_integration_secret(
+            instance_id,
+            "password",
+        )
 
-        if missing:
-            raise RuntimeError(
-                "TP-Link settings are incomplete in SQLite: "
-                + ", ".join(missing)
-            )
+        if not host or not username or not encrypted_password:
+            raise RuntimeError("TP-Link router configuration is incomplete.")
 
-        return settings
-
-    def _client(
-        self,
-        device: dict[str, Any],
-    ) -> TPLinkRouterIntegration:
-        settings = self._settings(device)
+        password = decrypt_secret(encrypted_password)
 
         return TPLinkRouterIntegration(
-            host=settings["host"],
-            username=settings["username"],
-            password=settings["password"],
+            host=host,
+            username=username,
+            password=password,
         )
 
     def get_capabilities(self, device: dict[str, Any]) -> set[str]:
@@ -74,7 +53,7 @@ class TPLinkRouterAdapter:
         return {}
 
     def get_state(self, device: dict[str, Any]) -> dict[str, Any]:
-        client = self._client(device)
+        client = self._get_client(device)
 
         return {
             "online": client.is_online(),
@@ -83,8 +62,9 @@ class TPLinkRouterAdapter:
     def get_dhcp_clients(
         self,
         device: dict[str, Any],
-    ) -> list[dict[str, Any]]:
-        return self._client(device).get_dhcp_clients()
+    ) -> list[dict[str, str]]:
+        client = self._get_client(device)
+        return client.get_dhcp_clients()
 
     def execute(
         self,
@@ -92,6 +72,4 @@ class TPLinkRouterAdapter:
         command: str,
         parameters: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        raise ValueError(
-            f"Unsupported router command: {command}"
-        )
+        raise ValueError("TP-Link router does not support commands.")

@@ -1,9 +1,6 @@
-from integrations.tuya.adapter import TuyaIntegrationAdapter
-from integrations.tplink_router.adapter import TPLinkRouterAdapter
-from services.integration_registry import integration_registry
+from services.integration_manager import integration_manager
 
 
-def register_integrations() -> None:
-    """Register available integrations with Core."""
-    integration_registry.register(TuyaIntegrationAdapter())
-    integration_registry.register(TPLinkRouterAdapter())
+def register_integrations() -> list[str]:
+    """Discover and register all available integration adapters."""
+    return integration_manager.discover()
