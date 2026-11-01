@@ -50,5 +50,26 @@
             "title": "Settings",
             "description": "Configure your Smart Home application preferences."
         }
+    },
+    "integrations": {
+        "title": "Integrations",
+        "description": "Connect Smart Home to devices and services.",
+        "devicePlatforms": "Device platforms",
+        "tplink": "TP-Link Router",
+        "tplinkDescription": "Connect your router through the local network.",
+        "tuya": "Tuya",
+        "tuyaDescription": "Connect Tuya-compatible smart devices.",
+        "cloud": "Tuya Cloud",
+        "local": "Tuya Local",
+        "cloudDescription": "Connect through the Tuya cloud service.",
+        "localDescription": "Connect directly through your local network.",
+        "localConnection": "Local connection",
+        "notConfigured": "Not configured",
+        "connectionStatus": "Connection status",
+        "tplinkSetupLater": "Router connection settings will be added later.",
+        "cloudSetupLater": "Cloud connection settings will be added later.",
+        "localSetupLater": "Local connection settings will be added later.",
+        "backToIntegrations": "← Integrations",
+        "backToTuya": "← Tuya"
     }
 }

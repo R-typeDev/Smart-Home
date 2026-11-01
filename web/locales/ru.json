@@ -50,5 +50,26 @@
             "title": "Настройки",
             "description": "Настройка параметров приложения умного дома."
         }
+    },
+    "integrations": {
+        "title": "Интеграции",
+        "description": "Подключение устройств и сервисов к системе умного дома.",
+        "devicePlatforms": "Платформы устройств",
+        "tplink": "Роутер TP-Link",
+        "tplinkDescription": "Подключение роутера через локальную сеть.",
+        "tuya": "Tuya",
+        "tuyaDescription": "Подключение умных устройств, совместимых с Tuya.",
+        "cloud": "Tuya Cloud",
+        "local": "Tuya Local",
+        "cloudDescription": "Подключение через облачный сервис Tuya.",
+        "localDescription": "Прямое подключение через локальную сеть.",
+        "localConnection": "Локальное подключение",
+        "notConfigured": "Не настроено",
+        "connectionStatus": "Состояние подключения",
+        "tplinkSetupLater": "Настройки подключения роутера будут добавлены позже.",
+        "cloudSetupLater": "Настройки облачного подключения будут добавлены позже.",
+        "localSetupLater": "Настройки локального подключения будут добавлены позже.",
+        "backToIntegrations": "← Интеграции",
+        "backToTuya": "← Tuya"
     }
 }

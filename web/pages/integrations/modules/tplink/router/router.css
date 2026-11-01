@@ -1,0 +1,39 @@
+.integration-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 14px;
+    color: var(--color-primary, #2477d4);
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.integration-settings-card {
+    padding: 22px;
+    background: var(--color-surface, #fff);
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: var(--radius, 12px);
+}
+
+.integration-settings-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.integration-settings-card h2 {
+    margin: 0;
+    font-size: 17px;
+}
+
+.integration-settings-card p {
+    margin: 16px 0 0;
+    color: var(--color-muted, #777);
+    font-size: 14px;
+    line-height: 1.5;
+}

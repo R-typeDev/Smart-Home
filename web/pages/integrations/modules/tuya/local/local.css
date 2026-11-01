@@ -1,0 +1,13 @@
+.integration-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 14px;
+    color: var(--color-primary, #2477d4);
+    font-size: 14px;
+    text-decoration: none;
+}

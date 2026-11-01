@@ -8,24 +8,28 @@ const pages = {
         js: "/pages/dashboard/dashboard.js",
         css: "/pages/dashboard/dashboard.css"
     },
+
     "/devices": {
         name: "devices",
         html: "/pages/devices/devices.html",
         js: "/pages/devices/devices.js",
         css: "/pages/devices/devices.css"
     },
+
     "/network": {
         name: "network",
         html: "/pages/network/network.html",
         js: "/pages/network/network.js",
         css: "/pages/network/network.css"
     },
+
     "/integrations": {
         name: "integrations",
         html: "/pages/integrations/integrations.html",
         js: "/pages/integrations/integrations.js",
         css: "/pages/integrations/integrations.css"
     },
+
     "/settings": {
         name: "settings",
         html: "/pages/settings/settings.html",
@@ -34,19 +38,60 @@ const pages = {
     }
 };
 
+const integrationPages = {
+    "#tuya": {
+        name: "tuya",
+        html: "/pages/integrations/modules/tuya/tuya.html",
+        js: "/pages/integrations/modules/tuya/tuya.js",
+        css: "/pages/integrations/modules/tuya/tuya.css"
+    },
+
+    "#tuya/cloud": {
+        name: "tuya-cloud",
+        html: "/pages/integrations/modules/tuya/cloud/cloud.html",
+        js: "/pages/integrations/modules/tuya/cloud/cloud.js",
+        css: "/pages/integrations/modules/tuya/cloud/cloud.css"
+    },
+
+    "#tuya/local": {
+        name: "tuya-local",
+        html: "/pages/integrations/modules/tuya/local/local.html",
+        js: "/pages/integrations/modules/tuya/local/local.js",
+        css: "/pages/integrations/modules/tuya/local/local.css"
+    },
+
+    "#tplink/router": {
+        name: "tplink-router",
+        html: "/pages/integrations/modules/tplink/router/router.html",
+        js: "/pages/integrations/modules/tplink/router/router.js",
+        css: "/pages/integrations/modules/tplink/router/router.css"
+    }
+};
+
 function resolveRoute(path) {
-    if (pages[path]) {
+    const [pathname, hash = ""] = path.split("#");
+
+    if (pathname === "/integrations" && hash) {
+        const integrationPage = integrationPages[`#${hash}`];
+
+        if (integrationPage) {
+            return {
+                path: `${pathname}#${hash}`,
+                page: integrationPage
+            };
+        }
+    }
+
+    if (pages[pathname]) {
         return {
-            path,
-            page: pages[path]
+            path: pathname,
+            page: pages[pathname]
         };
     }
 
-    const deviceMatch = path.match(/^\/devices\/item\/([^/]+)\/?$/);
-
-    if (deviceMatch) {
+    if (/^\/devices\/item\/[^/]+\/?$/.test(pathname)) {
         return {
-            path: path.replace(/\/$/, ""),
+            path: pathname.replace(/\/$/, ""),
             page: {
                 name: "device-detail",
                 html: "/pages/devices/device.html",
@@ -56,11 +101,9 @@ function resolveRoute(path) {
         };
     }
 
-    const networkMatch = path.match(/^\/network\/item\/([^/]+)\/?$/);
-
-    if (networkMatch) {
+    if (/^\/network\/item\/[^/]+\/?$/.test(pathname)) {
         return {
-            path: path.replace(/\/$/, ""),
+            path: pathname.replace(/\/$/, ""),
             page: {
                 name: "network-device-detail",
                 html: "/pages/network/network-device.html",
@@ -115,16 +158,16 @@ export function startNavigation() {
     });
 
     window.addEventListener("popstate", () => {
-        navigate(location.pathname, false);
+        navigate(location.pathname + location.hash, false);
     });
 
     window.addEventListener("language:changed", () => {
         applyTranslations();
     });
 
-    const route = resolveRoute(location.pathname);
+    const route = resolveRoute(location.pathname + location.hash);
 
-    if (location.pathname !== route.path) {
+    if (location.pathname + location.hash !== route.path) {
         history.replaceState({}, "", route.path);
     }
 
