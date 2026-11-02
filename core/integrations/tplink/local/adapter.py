@@ -1,17 +1,17 @@
-from typing import Any
+﻿from typing import Any
 
 from database.integrations import (
     get_integration_settings,
     get_integration_secret,
 )
-from integrations.tplink_router.router import TPLinkRouterIntegration
+from integrations.tplink.local.network.router import TPLinkRouterIntegration
 from services.secret_service import decrypt_secret
 
 
 class TPLinkRouterAdapter:
     """TP-Link router integration adapter."""
 
-    integration_id = "tplink_router"
+    integration_id = "tplink_local"
 
     def _get_client(self, device: dict[str, Any]) -> TPLinkRouterIntegration:
         instance_id = device.get("instance_id")

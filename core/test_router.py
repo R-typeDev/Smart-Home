@@ -1,7 +1,7 @@
 
 from getpass import getpass
 
-from integrations.tplink_router.router import TPLinkRouterIntegration
+from integrations.tplink.local.network.router import TPLinkRouterIntegration
 
 
 def main():

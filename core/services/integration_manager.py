@@ -1,13 +1,15 @@
+
 import importlib
 import inspect
 import pkgutil
 
+from database.integrations import get_integration
 from integrations import __path__ as integrations_path
 from services.integration_registry import integration_registry
 
 
 class IntegrationManager:
-    """Discovers and registers integration adapters automatically."""
+    """Discovers and registers available integration adapters."""
 
     def discover(self) -> list[str]:
         discovered = []
@@ -36,6 +38,12 @@ class IntegrationManager:
 
                 adapter = adapter_class()
                 integration_id = adapter.integration_id
+
+                if not get_integration(integration_id):
+                    raise RuntimeError(
+                        f"Adapter has no matching database integration: "
+                        f"{integration_id}"
+                    )
 
                 if integration_registry.is_registered(integration_id):
                     continue

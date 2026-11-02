@@ -1,29 +1,8 @@
-from typing import Any, Protocol
-
-
-class DeviceIntegration(Protocol):
-    @property
-    def integration_id(self) -> str: ...
-
-    def get_capabilities(self, device: dict[str, Any]) -> set[str]: ...
-
-    def get_commands(
-        self,
-        device: dict[str, Any],
-    ) -> dict[str, dict[str, Any]]: ...
-
-    def get_state(self, device: dict[str, Any]) -> dict[str, Any]: ...
-
-    def execute(
-        self,
-        device: dict[str, Any],
-        command: str,
-        parameters: dict[str, Any] | None = None,
-    ) -> dict[str, Any]: ...
+from integrations.contract import DeviceIntegration
 
 
 class IntegrationRegistry:
-    """Registry of available integration modules."""
+    """Registry of available integration adapters."""
 
     def __init__(self) -> None:
         self._integrations: dict[str, DeviceIntegration] = {}

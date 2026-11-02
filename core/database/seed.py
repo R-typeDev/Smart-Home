@@ -3,14 +3,19 @@ from database.connection import get_connection
 
 INITIAL_INTEGRATIONS = [
     {
-        "id": "tplink_router",
-        "name": "TP-Link Router",
-        "integration_type": "tplink_router",
+        "id": "tplink_local",
+        "name": "TP-Link Local",
+        "integration_type": "tplink_local",
     },
     {
         "id": "tuya_local",
         "name": "Tuya Local",
         "integration_type": "tuya_local",
+    },
+    {
+        "id": "tuya_cloud",
+        "name": "Tuya Cloud",
+        "integration_type": "tuya_cloud",
     },
 ]
 

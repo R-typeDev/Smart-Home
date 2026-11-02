@@ -1,8 +1,8 @@
-from typing import Any
+﻿from typing import Any
 
 from database.devices import get_device_source_secret
 from services.secret_service import decrypt_secret
-from integrations.tuya.plug import TuyaPlugIntegration
+from integrations.tuya.local.devices.plug import TuyaPlugIntegration
 
 
 class TuyaLocalAdapter:
