@@ -1,16 +1,20 @@
-﻿<!DOCTYPE html>
+﻿
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Manage and monitor your smart home devices, network, and integrations.">
     <meta name="theme-color" content="#f3f5f8">
+
     <title>Dashboard | Smart Home</title>
+
     <link rel="stylesheet" href="/assets/css/main.css">
     <link rel="stylesheet" href="/assets/css/layout.css">
 </head>
 <body>
     <div class="app-shell">
+
         <header class="app-header">
             <a class="app-brand" href="/dashboard" data-route="/dashboard">
                 <span class="app-brand__icon" aria-hidden="true">⌂</span>
@@ -18,8 +22,14 @@
             </a>
 
             <div class="app-header__actions">
-                <label for="language-select" class="visually-hidden"
-                       data-i18n="app.language">Language</label>
+                <label
+                    for="language-select"
+                    class="visually-hidden"
+                    data-i18n="app.language"
+                >
+                    Language
+                </label>
+
                 <select id="language-select" name="language">
                     <option value="en">English</option>
                     <option value="ru">Русский</option>
@@ -28,29 +38,97 @@
         </header>
 
         <div class="app-body">
+
             <aside class="sidebar">
                 <nav class="navigation" aria-label="Main navigation">
-                    <a href="/dashboard" data-route="/dashboard"
-                       data-i18n="nav.dashboard">Dashboard</a>
-                    <a href="/devices" data-route="/devices"
-                       data-i18n="nav.devices">Devices</a>
-                    <a href="/network" data-route="/network"
-                       data-i18n="nav.network">Network</a>
-                    <a href="/integrations" data-route="/integrations"
-                       data-i18n="nav.integrations">Integrations</a>
-                    <a href="/settings" data-route="/settings"
-                       data-i18n="nav.settings">Settings</a>
+
+                    <a
+                        class="navigation__link"
+                        href="/dashboard"
+                        data-route="/dashboard"
+                    >
+                        <img
+                            class="nav-icon"
+                            src="/assets/icons/dashboard.png"
+                            alt=""
+                            aria-hidden="true"
+                        >
+                        <span data-i18n="nav.dashboard">Dashboard</span>
+                    </a>
+
+                    <a
+                        class="navigation__link"
+                        href="/devices"
+                        data-route="/devices"
+                    >
+                        <img
+                            class="nav-icon"
+                            src="/assets/icons/devices.png"
+                            alt=""
+                            aria-hidden="true"
+                        >
+                        <span data-i18n="nav.devices">Devices</span>
+                    </a>
+
+                    <a
+                        class="navigation__link"
+                        href="/network"
+                        data-route="/network"
+                    >
+                        <img
+                            class="nav-icon"
+                            src="/assets/icons/network.png"
+                            alt=""
+                            aria-hidden="true"
+                        >
+                        <span data-i18n="nav.network">Network</span>
+                    </a>
+
+                    <a
+                        class="navigation__link"
+                        href="/integrations"
+                        data-route="/integrations"
+                    >
+                        <img
+                            class="nav-icon"
+                            src="/assets/icons/integrations.png"
+                            alt=""
+                            aria-hidden="true"
+                        >
+                        <span data-i18n="nav.integrations">Integrations</span>
+                    </a>
+
+                    <a
+                        class="navigation__link"
+                        href="/settings"
+                        data-route="/settings"
+                    >
+                        <img
+                            class="nav-icon"
+                            src="/assets/icons/settings.png"
+                            alt=""
+                            aria-hidden="true"
+                        >
+                        <span data-i18n="nav.settings">Settings</span>
+                    </a>
+
                 </nav>
             </aside>
 
-            <main id="app-content" class="app-content" tabindex="-1">
+            <main
+                id="app-content"
+                class="app-content"
+                tabindex="-1"
+            >
                 <p data-i18n="app.loading">Loading...</p>
             </main>
+
         </div>
 
         <footer class="app-footer">
             <span>Smart Home</span>
         </footer>
+
     </div>
 
     <script type="module" src="/assets/js/app.js"></script>
