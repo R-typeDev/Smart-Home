@@ -1,4 +1,4 @@
-﻿{
+{
     "app": {
         "name": "Smart Home",
         "language": "Language",
@@ -70,6 +70,20 @@
         "cloudSetupLater": "Cloud connection settings will be added later.",
         "localSetupLater": "Local connection settings will be added later.",
         "backToIntegrations": "← Integrations",
-        "backToTuya": "← Tuya"
+        "backToTuya": "← Tuya",
+        "tplinkPlatform": "TP-Link",
+        "tplinkPlatformDescription": "Connect TP-Link devices and network equipment.",
+        "tplinkRouter": "Router",
+        "tplinkRouterDescription": "Connect and manage your TP-Link router.",
+        "tuyaCloud": "Tuya Cloud",
+        "tuyaLocal": "Tuya Local",
+        "cloudConnection": "Cloud connection",
+        "statusEnabled": "Enabled",
+        "statusDisabled": "Disabled",
+        "statusNotImplemented": "Not implemented",
+        "statusError": "Error",
+        "enable": "Enable",
+        "disable": "Disable",
+        "catalogError": "Failed to load integrations."
     }
 }

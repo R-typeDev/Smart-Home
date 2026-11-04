@@ -39,6 +39,13 @@ const pages = {
 };
 
 const integrationPages = {
+    "#tplink": {
+        name: "tplink",
+        html: "/pages/integrations/modules/tplink/tplink.html",
+        js: "/pages/integrations/modules/tplink/tplink.js",
+        css: "/pages/integrations/modules/tplink/tplink.css"
+    },
+
     "#tuya": {
         name: "tuya",
         html: "/pages/integrations/modules/tuya/tuya.html",

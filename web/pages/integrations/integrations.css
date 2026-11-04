@@ -1,4 +1,4 @@
-﻿.integrations-page {
+.integrations-page {
     display: flex;
     flex-direction: column;
     gap: 28px;
@@ -102,4 +102,121 @@
     .integrations-grid {
         grid-template-columns: 1fr;
     }
+}
+/* Dynamic integration catalog */
+
+.integration-card__main {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.integration-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.integration-method {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--color-muted, #777);
+    text-decoration: none;
+}
+
+.integration-method__name {
+    font-size: 13px;
+}
+
+.integration-method:hover {
+    color: var(--color-primary, #2477d4);
+}
+
+.integration-method-card {
+    justify-content: space-between;
+}
+
+.integration-method-card__type {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-muted, #777);
+    font-size: 13px;
+}
+
+.integration-toggle {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 10px;
+    padding: 6px 0;
+    color: inherit;
+    background: none;
+    border: 0;
+    cursor: pointer;
+}
+
+.integration-toggle:disabled {
+    opacity: 0.5;
+    cursor: wait;
+}
+
+.integration-toggle__track {
+    position: relative;
+    display: inline-flex;
+    width: 38px;
+    height: 22px;
+    padding: 3px;
+    background: #9ca3af;
+    border-radius: 20px;
+    transition: background 0.2s;
+}
+
+.integration-toggle[aria-checked="true"] .integration-toggle__track {
+    background: var(--color-primary, #2477d4);
+}
+
+.integration-toggle__thumb {
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+}
+
+.integration-toggle[aria-checked="true"] .integration-toggle__thumb {
+    transform: translateX(16px);
+}
+
+.integration-toggle__label {
+    font-size: 13px;
+}
+
+.integration-catalog-error {
+    color: #dc2626;
+}
+
+.integration-status[data-i18n="integrations.statusEnabled"] {
+    color: #15803d;
+}
+
+.integration-status[data-i18n="integrations.statusError"] {
+    color: #dc2626;
+}
+
+.integration-method-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+}
+
+.integration-method-row > .integration-method {
+    flex: 1;
+    min-width: 0;
 }

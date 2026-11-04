@@ -1,4 +1,4 @@
-﻿{
+{
     "app": {
         "name": "Умный дом",
         "language": "Язык",
@@ -70,6 +70,20 @@
         "cloudSetupLater": "Настройки облачного подключения будут добавлены позже.",
         "localSetupLater": "Настройки локального подключения будут добавлены позже.",
         "backToIntegrations": "← Интеграции",
-        "backToTuya": "← Tuya"
+        "backToTuya": "← Tuya",
+        "tplinkPlatform": "TP-Link",
+        "tplinkPlatformDescription": "Подключение устройств и сетевого оборудования TP-Link.",
+        "tplinkRouter": "Роутер",
+        "tplinkRouterDescription": "Подключение и управление роутером TP-Link.",
+        "tuyaCloud": "Tuya Cloud",
+        "tuyaLocal": "Tuya Local",
+        "cloudConnection": "Облачное подключение",
+        "statusEnabled": "Включена",
+        "statusDisabled": "Отключена",
+        "statusNotImplemented": "Не реализована",
+        "statusError": "Ошибка",
+        "enable": "Включить",
+        "disable": "Отключить",
+        "catalogError": "Не удалось загрузить интеграции."
     }
 }

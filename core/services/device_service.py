@@ -1,4 +1,4 @@
-from typing import Any
+﻿from typing import Any
 
 from services.integration_registry import integration_registry
 
@@ -37,10 +37,8 @@ class DeviceService:
     def _get_integration_device(
         self,
         device: dict[str, Any],
-    ) -> tuple[Any, dict[str, Any]]:
+    ) -> tuple[str, dict[str, Any]]:
         source = self._get_active_source(device)
-
-        integration = integration_registry.get(source["integration_id"])
 
         integration_device = {
             **device,
@@ -51,22 +49,37 @@ class DeviceService:
             "source": source,
         }
 
-        return integration, integration_device
+        return source["integration_id"], integration_device
 
     def get_capabilities(self, device: dict[str, Any]) -> set[str]:
-        integration, integration_device = self._get_integration_device(device)
-        return integration.get_capabilities(integration_device)
+        integration_id, integration_device = self._get_integration_device(device)
+
+        return integration_registry.call(
+            integration_id,
+            "get_capabilities",
+            integration_device,
+        )
 
     def get_commands(
         self,
         device: dict[str, Any],
     ) -> dict[str, dict[str, Any]]:
-        integration, integration_device = self._get_integration_device(device)
-        return integration.get_commands(integration_device)
+        integration_id, integration_device = self._get_integration_device(device)
+
+        return integration_registry.call(
+            integration_id,
+            "get_commands",
+            integration_device,
+        )
 
     def get_state(self, device: dict[str, Any]) -> dict[str, Any]:
-        integration, integration_device = self._get_integration_device(device)
-        return integration.get_state(integration_device)
+        integration_id, integration_device = self._get_integration_device(device)
+
+        return integration_registry.call(
+            integration_id,
+            "get_state",
+            integration_device,
+        )
 
     def execute(
         self,
@@ -74,13 +87,20 @@ class DeviceService:
         command: str,
         parameters: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        integration, integration_device = self._get_integration_device(device)
-        commands = integration.get_commands(integration_device)
+        integration_id, integration_device = self._get_integration_device(device)
+
+        commands = integration_registry.call(
+            integration_id,
+            "get_commands",
+            integration_device,
+        )
 
         if command not in commands:
             raise ValueError(f"Unsupported command: {command}")
 
-        return integration.execute(
+        return integration_registry.call(
+            integration_id,
+            "execute",
             integration_device,
             command,
             parameters,
@@ -90,16 +110,18 @@ class DeviceService:
         self,
         device: dict[str, Any],
     ) -> list[dict[str, Any]]:
-        integration, integration_device = self._get_integration_device(device)
+        integration_id, integration_device = self._get_integration_device(device)
 
-        get_clients = getattr(integration, "get_dhcp_clients", None)
-
-        if not callable(get_clients):
+        try:
+            return integration_registry.call(
+                integration_id,
+                "get_dhcp_clients",
+                integration_device,
+            )
+        except AttributeError as error:
             raise ValueError(
                 "This device does not support retrieving connected clients."
-            )
-
-        return get_clients(integration_device)
+            ) from error
 
 
 device_service = DeviceService()

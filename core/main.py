@@ -1,11 +1,10 @@
-from fastapi import FastAPI
+﻿from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from config import WEB_DIR
-from routes import devices, pages
-
-from integrations.bootstrap import register_integrations
 from database.schema import initialize_database
+from integrations.bootstrap import register_integrations
+from routes import devices, integrations, pages
 
 
 app = FastAPI(
@@ -14,8 +13,9 @@ app = FastAPI(
     version="0.1.0",
 )
 
-register_integrations()
+# Initialize SQLite before discovering adapters.
 initialize_database()
+register_integrations()
 
 
 @app.get("/health")
@@ -23,13 +23,10 @@ def health():
     return {"status": "ok"}
 
 
-# Application routes
-
 app.include_router(pages.router)
 app.include_router(devices.router)
+app.include_router(integrations.router)
 
-
-# Static frontend files
 
 app.mount(
     "/assets",
