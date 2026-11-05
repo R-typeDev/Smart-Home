@@ -1,9 +1,9 @@
-﻿PLATFORM_CATALOG = [
+PLATFORM_CATALOG = [
     {
         "id": "tplink",
         "name_key": "integrations.tplinkPlatform",
         "description_key": "integrations.tplinkPlatformDescription",
-        "logo": "TP-Link",
+        "logo": "/pages/integrations/modules/tplink/logo.svg",
         "route": "/integrations#tplink",
         "methods": [
             {
@@ -20,7 +20,7 @@
         "id": "tuya",
         "name_key": "integrations.tuya",
         "description_key": "integrations.tuyaDescription",
-        "logo": "Tuya",
+        "logo": "/pages/integrations/modules/tuya/logo.png",
         "route": "/integrations#tuya",
         "methods": [
             {

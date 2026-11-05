@@ -1,4 +1,9 @@
-import { applyTranslations } from "/assets/js/i18n.js";
+
+import {
+    applyTranslations,
+    getLanguage,
+    t
+} from "/assets/js/i18n.js";
 
 const CATALOG_URL = "/api/integrations/catalog";
 
@@ -27,6 +32,31 @@ async function getCatalog() {
     }
 
     return response.json();
+}
+
+function getMethodCountLabel(count) {
+    let key;
+
+    if (getLanguage() === "ru") {
+        const lastTwoDigits = count % 100;
+        const lastDigit = count % 10;
+
+        if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+            key = "integrations.connectionMethodsMany";
+        } else if (lastDigit === 1) {
+            key = "integrations.connectionMethod";
+        } else if (lastDigit >= 2 && lastDigit <= 4) {
+            key = "integrations.connectionMethodsFew";
+        } else {
+            key = "integrations.connectionMethodsMany";
+        }
+    } else {
+        key = count === 1
+            ? "integrations.connectionMethod"
+            : "integrations.connectionMethods";
+    }
+
+    return `${count} ${t(key)}`;
 }
 
 function renderStatus(status) {
@@ -77,15 +107,14 @@ function renderPlatformCard(platform) {
             <a class="integration-method"
                href="${escapeHtml(method.route)}"
                data-route="${escapeHtml(method.route)}">
-
-                <span class="integration-method__name"
-                      data-i18n="${escapeHtml(method.name_key)}">
-                    ${escapeHtml(method.id)}
+                <span class="integration-method__info">
+                    <span class="integration-method__name"
+                          data-i18n="${escapeHtml(method.name_key)}">
+                        ${escapeHtml(method.id)}
+                    </span>
+                    ${renderStatus(method.status)}
                 </span>
-
-                ${renderStatus(method.status)}
             </a>
-
             ${renderToggle(method, false)}
         </div>
     `).join("");
@@ -97,20 +126,28 @@ function renderPlatformCard(platform) {
                data-route="${escapeHtml(platform.route)}">
 
                 <div class="integration-card__header">
-                    <span class="integration-logo">
-                        ${escapeHtml(platform.logo)}
+                    <div class="integration-card__brand">
+                        <img
+                            class="integration-logo"
+                            src="${escapeHtml(platform.logo)}"
+                            alt="${escapeHtml(platform.id)}"
+                        >
+
+                        <div class="integration-card__identity">
+                            <h3 data-i18n="${escapeHtml(platform.name_key)}">
+                                ${escapeHtml(platform.id)}
+                            </h3>
+
+                            <p data-i18n="${escapeHtml(platform.description_key)}">
+                                ${escapeHtml(platform.id)}
+                            </p>
+                        </div>
+                    </div>
+
+                    <span class="integration-card__count">
+                        ${getMethodCountLabel(platform.methods.length)}
                     </span>
-
-                    ${renderStatus(platform.status)}
                 </div>
-
-                <h3 data-i18n="${escapeHtml(platform.name_key)}">
-                    ${escapeHtml(platform.id)}
-                </h3>
-
-                <p data-i18n="${escapeHtml(platform.description_key)}">
-                    ${escapeHtml(platform.id)}
-                </p>
             </a>
 
             <div class="integration-methods">
@@ -121,19 +158,20 @@ function renderPlatformCard(platform) {
 }
 
 function renderMethodCard(method, platform) {
-    const icon = method.connection_type === "cloud" ? "☁" : "⌁";
+    const icon = method.connection_type === "cloud" ? "\u2601" : "\u2301";
 
     return `
         <article class="integration-card integration-method-card">
-
             <a class="integration-card__main"
                href="${escapeHtml(method.route)}"
                data-route="${escapeHtml(method.route)}">
 
                 <div class="integration-card__header">
-                    <span class="integration-logo">
-                        ${escapeHtml(platform.logo)}
-                    </span>
+                    <img
+                        class="integration-logo"
+                        src="${escapeHtml(platform.logo)}"
+                        alt="${escapeHtml(platform.id)}"
+                    >
 
                     ${renderStatus(method.status)}
                 </div>
@@ -245,10 +283,37 @@ function bindToggle(container, renderer) {
 export function initIntegrationsCatalog(container) {
     if (!container) return;
 
-    const renderer = renderPlatforms.bind(null);
-
     bindToggle(container, renderPlatforms);
-    refresh(container, renderPlatforms);
+
+    let catalog = [];
+
+    const render = async () => {
+        try {
+            catalog = await getCatalog();
+            renderPlatforms(container, catalog);
+            applyTranslations(container);
+        } catch (error) {
+            console.error("Failed to load integration catalog:", error);
+
+            container.innerHTML = `
+                <p class="integration-catalog-error"
+                   data-i18n="integrations.catalogError">
+                    Failed to load integrations.
+                </p>
+            `;
+
+            applyTranslations(container);
+        }
+    };
+
+    window.addEventListener("language:changed", () => {
+        if (container.isConnected && catalog.length) {
+            renderPlatforms(container, catalog);
+            applyTranslations(container);
+        }
+    });
+
+    render();
 }
 
 export function initPlatformCatalog(container, platformId) {

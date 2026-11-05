@@ -49,32 +49,16 @@ def _method_catalog(method: dict[str, Any]) -> dict[str, Any]:
 
 @router.get("/api/integrations/catalog")
 def get_integrations_catalog():
-    result = []
-
-    for platform in PLATFORM_CATALOG:
-        methods = [
-            _method_catalog(method)
-            for method in platform["methods"]
-        ]
-
-        statuses = [method["status"] for method in methods]
-
-        if "enabled" in statuses:
-            platform_status = "enabled"
-        elif "error" in statuses:
-            platform_status = "error"
-        elif any(method["implemented"] for method in methods):
-            platform_status = "disabled"
-        else:
-            platform_status = "not_implemented"
-
-        result.append({
+    return [
+        {
             **platform,
-            "status": platform_status,
-            "methods": methods,
-        })
-
-    return result
+            "methods": [
+                _method_catalog(method)
+                for method in platform["methods"]
+            ],
+        }
+        for platform in PLATFORM_CATALOG
+    ]
 
 
 @router.get("/api/integrations/{integration_id}/status")

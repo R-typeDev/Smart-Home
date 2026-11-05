@@ -84,6 +84,10 @@
         "statusError": "Error",
         "enable": "Enable",
         "disable": "Disable",
+        "connectionMethod": "connection method",
+        "connectionMethods": "connection methods",
+        "connectionMethodsFew": "connection methods",
+        "connectionMethodsMany": "connection methods",
         "catalogError": "Failed to load integrations."
     }
 }
