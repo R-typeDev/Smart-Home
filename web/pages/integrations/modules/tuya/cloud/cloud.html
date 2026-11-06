@@ -1,34 +1,99 @@
-<section class="integration-detail">
-    <header class="page-header">
-        <a class="back-link"
-           href="/integrations#tuya"
-           data-route="/integrations#tuya"
-           data-i18n="integrations.backToTuya">
-            ← Tuya
-        </a>
+<section class="cloud-page" data-tuya-cloud>
+    <header class="cloud-header">
+        <a
+            class="cloud-back-link"
+            href="#/integrations/tuya"
+            data-i18n="integrations.backToTuya"
+        >← Tuya</a>
 
-        <h1 data-i18n="integrations.cloud">Tuya Cloud</h1>
-
-        <p class="page-description"
-           data-i18n="integrations.cloudDescription">
-            Connect through the Tuya cloud service.
-        </p>
+        <div class="cloud-title">
+            <div class="cloud-icon">☁</div>
+            <div>
+                <h1 data-i18n="integrations.tuyaCloud">Tuya Cloud</h1>
+                <p data-i18n="integrations.cloudPageDescription">
+                    Manage your Tuya Cloud connection.
+                </p>
+            </div>
+        </div>
     </header>
 
-    <div class="integration-settings-card">
-        <div class="integration-settings-card__header">
-            <h2 data-i18n="integrations.connectionStatus">
-                Connection status
-            </h2>
+    <div class="cloud-notice" data-cloud-message hidden></div>
 
-            <span class="integration-status"
-                  data-i18n="integrations.notConfigured">
-                Not configured
+    <section class="cloud-card">
+        <div class="cloud-card-header">
+            <div>
+                <h2 data-i18n="integrations.connectionStatus">
+                    Connection status
+                </h2>
+                <p class="cloud-muted" data-cloud-connection-name>
+                    —
+                </p>
+            </div>
+
+            <span class="cloud-status" data-cloud-status>
+                —
             </span>
         </div>
 
-        <p data-i18n="integrations.cloudSetupLater">
-            Cloud connection settings will be added later.
-        </p>
-    </div>
+        <div class="cloud-info-grid">
+            <div class="cloud-info-item">
+                <span data-i18n="integrations.cloudRegion">Region</span>
+                <strong data-cloud-region>—</strong>
+            </div>
+
+            <div class="cloud-info-item">
+                <span data-i18n="integrations.cloudUserId">Tuya User ID</span>
+                <strong data-cloud-user-id>—</strong>
+            </div>
+
+            <div class="cloud-info-item">
+                <span data-i18n="integrations.cloudEnabled">Integration</span>
+                <strong data-cloud-enabled>—</strong>
+            </div>
+
+            <div class="cloud-info-item">
+                <span data-i18n="integrations.cloudLastSync">Last synchronization</span>
+                <strong data-cloud-last-sync>—</strong>
+            </div>
+        </div>
+
+        <div class="cloud-actions">
+            <button
+                type="button"
+                class="cloud-button cloud-button-primary"
+                data-cloud-test
+            >
+                <span data-i18n="integrations.cloudTest">Test connection</span>
+            </button>
+
+            <button
+                type="button"
+                class="cloud-button cloud-button-secondary"
+                data-cloud-refresh
+            >
+                <span data-i18n="integrations.cloudRefresh">Refresh devices</span>
+            </button>
+        </div>
+    </section>
+
+    <section class="cloud-card">
+        <div class="cloud-card-header">
+            <div>
+                <h2 data-i18n="integrations.cloudDevices">
+                    Discovered devices
+                </h2>
+                <p class="cloud-muted" data-i18n="integrations.cloudDevicesDescription">
+                    Devices available through your Tuya Cloud account.
+                </p>
+            </div>
+
+            <span class="cloud-device-count" data-cloud-device-count>0</span>
+        </div>
+
+        <div class="cloud-devices" data-cloud-devices>
+            <div class="cloud-empty" data-i18n="integrations.cloudLoading">
+                Loading devices...
+            </div>
+        </div>
+    </section>
 </section>

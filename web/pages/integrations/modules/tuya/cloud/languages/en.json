@@ -1,0 +1,21 @@
+{
+  "notConfigured": "Connection is not configured.",
+  "loading": "Loading...",
+  "noConnection": "Tuya Cloud connection was not found.",
+  "connected": "Connected",
+  "disconnected": "Disconnected",
+  "enabled": "Enabled",
+  "disabled": "Disabled",
+  "online": "Online",
+  "offline": "Offline",
+  "noDevices": "No devices found.",
+  "testSuccess": "Tuya Cloud connection successfully verified.",
+  "devicesUpdated": "Device list updated.",
+  "connectionError": "Connection error.",
+  "loadError": "Failed to load data.",
+  "device": "Device",
+  "category": "Category",
+  "deviceId": "Device ID",
+  "lastSyncNever": "Not synchronized yet",
+  "unknown": "Unknown"
+}

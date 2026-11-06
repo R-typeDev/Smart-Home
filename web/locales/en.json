@@ -88,6 +88,25 @@
         "connectionMethods": "connection methods",
         "connectionMethodsFew": "connection methods",
         "connectionMethodsMany": "connection methods",
-        "catalogError": "Failed to load integrations."
+        "catalogError": "Failed to load integrations.",
+        "localPageDescription": "Manage direct connections to Tuya devices.",
+        "localDevicesCount": "Linked devices",
+        "localProtocol": "Protocol",
+        "localKeyStatus": "Local Key",
+        "localLastTest": "Last test",
+        "localRefresh": "Refresh devices",
+        "localDevices": "Local devices",
+        "localDevicesDescription": "Devices connected directly through your local network.",
+        "localLoading": "Loading devices...",
+        "cloudPageDescription": "Manage your Tuya Cloud connection.",
+        "cloudRegion": "Region",
+        "cloudUserId": "Tuya User ID",
+        "cloudEnabled": "Integration",
+        "cloudLastSync": "Last synchronization",
+        "cloudTest": "Test connection",
+        "cloudRefresh": "Refresh devices",
+        "cloudDevices": "Discovered devices",
+        "cloudDevicesDescription": "Devices available through your Tuya Cloud account.",
+        "cloudLoading": "Loading devices..."
     }
 }

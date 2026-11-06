@@ -13,6 +13,21 @@ export function t(key) {
     ) ?? key;
 }
 
+// Loads translations belonging to an individual module.
+export async function loadModuleTranslations(modulePath) {
+    const response = await fetch(
+        `${modulePath}/${currentLanguage}.json`
+    );
+
+    if (!response.ok) {
+        throw new Error(
+            `Could not load module translations: ${modulePath}/${currentLanguage}.json`
+        );
+    }
+
+    return await response.json();
+}
+
 export function applyTranslations(root = document) {
     root.querySelectorAll("[data-i18n]").forEach((element) => {
         element.textContent = t(element.dataset.i18n);

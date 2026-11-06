@@ -1,34 +1,99 @@
-<section class="integration-detail">
-    <header class="page-header">
-        <a class="back-link"
-           href="/integrations#tuya"
-           data-route="/integrations#tuya"
-           data-i18n="integrations.backToTuya">
-            ← Tuya
-        </a>
+<section class="local-page" data-tuya-local>
+    <header class="local-header">
+        <a
+            class="local-back-link"
+            href="#/integrations/tuya"
+            data-i18n="integrations.backToTuya"
+        >← Tuya</a>
 
-        <h1 data-i18n="integrations.local">Tuya Local</h1>
-
-        <p class="page-description"
-           data-i18n="integrations.localDescription">
-            Connect directly through your local network.
-        </p>
+        <div class="local-title">
+            <div class="local-icon">⌂</div>
+            <div>
+                <h1 data-i18n="integrations.tuyaLocal">Tuya Local</h1>
+                <p data-i18n="integrations.localPageDescription">
+                    Manage direct connections to Tuya devices.
+                </p>
+            </div>
+        </div>
     </header>
 
-    <div class="integration-settings-card">
-        <div class="integration-settings-card__header">
-            <h2 data-i18n="integrations.connectionStatus">
-                Connection status
-            </h2>
+    <div class="local-notice" data-local-message hidden></div>
 
-            <span class="integration-status"
-                  data-i18n="integrations.notConfigured">
-                Not configured
-            </span>
+    <section class="local-card">
+        <div class="local-card-header">
+            <div>
+                <h2 data-i18n="integrations.connectionStatus">
+                    Connection status
+                </h2>
+                <p class="local-muted" data-local-summary>
+                    —
+                </p>
+            </div>
+
+            <span class="local-status" data-local-status>—</span>
         </div>
 
-        <p data-i18n="integrations.localSetupLater">
-            Local connection settings will be added later.
-        </p>
-    </div>
+        <div class="local-info-grid">
+            <div class="local-info-item">
+                <span data-i18n="integrations.localDevicesCount">
+                    Linked devices
+                </span>
+                <strong data-local-device-count>0</strong>
+            </div>
+
+            <div class="local-info-item">
+                <span data-i18n="integrations.localProtocol">
+                    Protocol
+                </span>
+                <strong data-local-protocol>Tuya LAN</strong>
+            </div>
+
+            <div class="local-info-item">
+                <span data-i18n="integrations.localKeyStatus">
+                    Local Key
+                </span>
+                <strong data-local-key-status>—</strong>
+            </div>
+
+            <div class="local-info-item">
+                <span data-i18n="integrations.localLastTest">
+                    Last test
+                </span>
+                <strong data-local-last-test>—</strong>
+            </div>
+        </div>
+
+        <div class="local-actions">
+            <button
+                type="button"
+                class="local-button local-button-secondary"
+                data-local-refresh
+            >
+                <span data-i18n="integrations.localRefresh">
+                    Refresh devices
+                </span>
+            </button>
+        </div>
+    </section>
+
+    <section class="local-card">
+        <div class="local-card-header">
+            <div>
+                <h2 data-i18n="integrations.localDevices">
+                    Local devices
+                </h2>
+                <p class="local-muted" data-i18n="integrations.localDevicesDescription">
+                    Devices connected directly through your local network.
+                </p>
+            </div>
+
+            <span class="local-device-count" data-local-count>0</span>
+        </div>
+
+        <div class="local-devices" data-local-devices>
+            <div class="local-empty" data-i18n="integrations.localLoading">
+                Loading devices...
+            </div>
+        </div>
+    </section>
 </section>

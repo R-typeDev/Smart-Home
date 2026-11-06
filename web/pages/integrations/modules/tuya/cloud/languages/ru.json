@@ -1,0 +1,21 @@
+{
+  "notConfigured": "Подключение не настроено.",
+  "loading": "Загрузка...",
+  "noConnection": "Подключение Tuya Cloud не найдено.",
+  "connected": "Подключено",
+  "disconnected": "Нет подключения",
+  "enabled": "Включена",
+  "disabled": "Отключена",
+  "online": "В сети",
+  "offline": "Не в сети",
+  "noDevices": "Устройства не найдены.",
+  "testSuccess": "Соединение с Tuya Cloud успешно проверено.",
+  "devicesUpdated": "Список устройств обновлён.",
+  "connectionError": "Ошибка подключения.",
+  "loadError": "Не удалось загрузить данные.",
+  "device": "Устройство",
+  "category": "Категория",
+  "deviceId": "ID устройства",
+  "lastSyncNever": "Ещё не выполнялась",
+  "unknown": "Неизвестно"
+}

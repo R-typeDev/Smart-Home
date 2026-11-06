@@ -1,13 +1,347 @@
-.integration-detail {
+.local-page {
     display: flex;
     flex-direction: column;
     gap: 24px;
+    width: 100%;
 }
 
-.back-link {
-    display: inline-block;
-    margin-bottom: 14px;
-    color: var(--color-primary, #2477d4);
-    font-size: 14px;
+.local-header {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.local-back-link {
+    width: fit-content;
+    color: #168a68;
     text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.local-back-link:hover {
+    text-decoration: underline;
+}
+
+.local-title {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.local-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    border-radius: 14px;
+    background: rgba(22, 138, 104, 0.11);
+    color: #168a68;
+    font-size: 28px;
+}
+
+.local-title h1 {
+    margin: 0;
+    font-size: 25px;
+    font-weight: 600;
+}
+
+.local-title p {
+    margin: 6px 0 0;
+    color: var(--color-text-secondary, #7b8491);
+    font-size: 14px;
+}
+
+.local-card {
+    padding: 24px;
+    border: 1px solid var(--color-border, #e5e8ed);
+    border-radius: 14px;
+    background: var(--color-surface, #ffffff);
+}
+
+.local-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.local-card-header h2 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.local-muted {
+    margin: 6px 0 0;
+    color: var(--color-text-secondary, #7b8491);
+    font-size: 13px;
+}
+
+.local-status,
+.local-device-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 11px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.local-status.is-connected,
+.local-device-status.is-ready {
+    background: #e7f6ef;
+    color: #168451;
+}
+
+.local-status.is-disconnected,
+.local-device-status.is-disabled {
+    background: #fcebea;
+    color: #c04444;
+}
+
+.local-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.local-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
+
+.local-info-item span {
+    color: var(--color-text-secondary, #7b8491);
+    font-size: 13px;
+}
+
+.local-info-item strong {
+    overflow-wrap: anywhere;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.local-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--color-border, #e5e8ed);
+}
+
+.local-button {
+    min-height: 40px;
+    padding: 0 16px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.local-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.local-button-primary {
+    background: #168a68;
+    color: #ffffff;
+}
+
+.local-button-primary:hover:not(:disabled) {
+    background: #117455;
+}
+
+.local-button-secondary {
+    border-color: var(--color-border, #dfe3e8);
+    background: var(--color-surface, #ffffff);
+    color: var(--color-text, #252a31);
+}
+
+.local-button-secondary:hover:not(:disabled) {
+    background: var(--color-background, #f3f5f8);
+}
+
+.local-device-count {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 30px;
+    height: 30px;
+    padding: 0 9px;
+    border-radius: 20px;
+    background: rgba(22, 138, 104, 0.1);
+    color: #168a68;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.local-devices {
+    display: flex;
+    flex-direction: column;
+}
+
+.local-device {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 0;
+    border-top: 1px solid var(--color-border, #e5e8ed);
+}
+
+.local-device:first-child {
+    border-top: 0;
+}
+
+.local-device-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 11px;
+    background: rgba(22, 138, 104, 0.1);
+    color: #168a68;
+    font-size: 23px;
+}
+
+.local-device-info {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.local-device-name {
+    overflow: hidden;
+    font-size: 14px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.local-device-meta {
+    overflow-wrap: anywhere;
+    color: var(--color-text-secondary, #7b8491);
+    font-size: 12px;
+}
+
+.local-device-warning {
+    color: #a56b16;
+    font-size: 12px;
+}
+
+.local-device-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.local-device-result {
+    min-height: 16px;
+    font-size: 12px;
+}
+
+.local-device-result.is-success {
+    color: #168451;
+}
+
+.local-device-result.is-error {
+    color: #c04444;
+}
+
+.local-empty {
+    padding: 24px 12px;
+    color: var(--color-text-secondary, #7b8491);
+    font-size: 13px;
+    text-align: center;
+}
+
+.local-notice {
+    padding: 12px 15px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.local-notice[hidden] {
+    display: none;
+}
+
+.local-notice.is-success {
+    border-color: #c8ead8;
+    background: #edf8f2;
+    color: #176c43;
+}
+
+.local-notice.is-error {
+    border-color: #f1cccc;
+    background: #fdf0f0;
+    color: #a83232;
+}
+
+.local-notice.is-warning {
+    border-color: #f0dfb8;
+    background: #fff8e9;
+    color: #89651d;
+}
+
+.local-notice.is-info {
+    border-color: var(--color-border, #e5e8ed);
+    background: var(--color-background, #f3f5f8);
+    color: var(--color-text, #252a31);
+}
+
+@media (max-width: 640px) {
+    .local-card {
+        padding: 18px;
+    }
+
+    .local-info-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .local-card-header {
+        flex-wrap: wrap;
+    }
+
+    .local-device {
+        flex-wrap: wrap;
+    }
+
+    .local-device-controls {
+        width: 100%;
+        align-items: stretch;
+        padding-left: 58px;
+    }
+
+    .local-device-controls .local-button {
+        width: 100%;
+    }
+
+    .local-actions {
+        flex-direction: column;
+    }
+
+    .local-actions .local-button {
+        width: 100%;
+    }
 }

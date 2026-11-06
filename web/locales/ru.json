@@ -88,6 +88,25 @@
         "connectionMethods": "способов подключения",
         "connectionMethodsFew": "способа подключения",
         "connectionMethodsMany": "способов подключения",
-        "catalogError": "Не удалось загрузить интеграции."
+        "catalogError": "Не удалось загрузить интеграции.",
+        "localPageDescription": "Управление прямыми подключениями к устройствам Tuya.",
+        "localDevicesCount": "Привязанные устройства",
+        "localProtocol": "Протокол",
+        "localKeyStatus": "Local Key",
+        "localLastTest": "Последняя проверка",
+        "localRefresh": "Обновить устройства",
+        "localDevices": "Локальные устройства",
+        "localDevicesDescription": "Устройства, подключённые напрямую через локальную сеть.",
+        "localLoading": "Загрузка устройств...",
+        "cloudPageDescription": "Управление облачным подключением Tuya.",
+        "cloudRegion": "Регион",
+        "cloudUserId": "Tuya User ID",
+        "cloudEnabled": "Интеграция",
+        "cloudLastSync": "Последняя синхронизация",
+        "cloudTest": "Проверить подключение",
+        "cloudRefresh": "Обновить устройства",
+        "cloudDevices": "Обнаруженные устройства",
+        "cloudDevicesDescription": "Устройства, доступные через аккаунт Tuya Cloud.",
+        "cloudLoading": "Загрузка устройств..."
     }
 }
