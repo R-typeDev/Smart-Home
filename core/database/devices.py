@@ -8,9 +8,12 @@ from database.connection import get_connection
 
 DEVICE_FIELDS = {
     "name",
+    "category",
     "type",
     "manufacturer",
     "model",
+    "barcode",
+    "serial_number",
     "room_id",
     "display_code",
     "enabled",
@@ -49,7 +52,11 @@ def _encode_value(value: Any, value_type: str) -> str | None:
 def _get_sources(connection, device_id: str) -> list[dict[str, Any]]:
     rows = connection.execute("""
         SELECT
+            ds.source_id,
             ds.device_id,
+            ds.source_type,
+            ds.handler_id,
+            ds.integration_id,
             ds.instance_id,
             ds.external_id,
             ds.source_name,
@@ -60,36 +67,59 @@ def _get_sources(connection, device_id: str) -> list[dict[str, Any]]:
             ds.updated_at,
             ii.name AS connection_name,
             ii.enabled AS connection_enabled,
-            i.id AS integration_id,
             i.name AS integration_name,
             i.integration_type,
             i.enabled AS integration_enabled
         FROM device_sources AS ds
-        JOIN integration_instances AS ii
+        LEFT JOIN integration_instances AS ii
             ON ii.id = ds.instance_id
-        JOIN integrations AS i
-            ON i.id = ii.integration_id
+        LEFT JOIN integrations AS i
+            ON i.id = ds.integration_id
         WHERE ds.device_id = ?
-        ORDER BY ds.priority, i.name, ii.name
+        ORDER BY ds.priority, ds.source_type, ds.handler_id
     """, (device_id,)).fetchall()
 
     return [dict(row) for row in rows]
 
 
+def _get_images(connection, device_id: str) -> list[dict[str, Any]]:
+    rows = connection.execute("""
+        SELECT
+            di.image_id,
+            di.asset_key,
+            di.filename,
+            di.original_filename,
+            di.image_source,
+            di.image_type,
+            di.mime_type,
+            di.source_url,
+            dia.image_role,
+            di.created_at,
+            di.updated_at
+        FROM device_image_assignments AS dia
+        JOIN device_images AS di
+            ON di.image_id = dia.image_id
+        WHERE dia.device_id = ?
+        ORDER BY
+            CASE dia.image_role
+                WHEN 'primary' THEN 0
+                ELSE 1
+            END,
+            dia.created_at
+    """, (device_id,)).fetchall()
+
+    return [dict(row) for row in rows]
+
+
+def get_device_images(device_id: str) -> list[dict[str, Any]]:
+    with get_connection() as connection:
+        return _get_images(connection, device_id)
+
+
 def get_devices() -> list[dict[str, Any]]:
     with get_connection() as connection:
         rows = connection.execute("""
-            SELECT
-                id,
-                display_code,
-                name,
-                type,
-                manufacturer,
-                model,
-                room_id,
-                enabled,
-                created_at,
-                updated_at
+            SELECT *
             FROM devices
             ORDER BY name COLLATE NOCASE
         """).fetchall()
@@ -98,6 +128,10 @@ def get_devices() -> list[dict[str, Any]]:
 
         for device in devices:
             device["sources"] = _get_sources(
+                connection,
+                device["id"],
+            )
+            device["images"] = _get_images(
                 connection,
                 device["id"],
             )
@@ -118,6 +152,7 @@ def get_device(device_id: str) -> dict[str, Any] | None:
 
         device = dict(row)
         device["sources"] = _get_sources(connection, device_id)
+        device["images"] = _get_images(connection, device_id)
 
         properties = connection.execute("""
             SELECT property_key, property_value, value_type
@@ -187,8 +222,11 @@ def add_device(
     *,
     name: str,
     device_type: str,
+    category: str | None = None,
     manufacturer: str | None = None,
     model: str | None = None,
+    barcode: str | None = None,
+    serial_number: str | None = None,
     room_id: str | None = None,
     display_code: str | None = None,
     enabled: bool = True,
@@ -208,20 +246,26 @@ def add_device(
                 id,
                 display_code,
                 name,
+                category,
                 type,
                 manufacturer,
                 model,
+                barcode,
+                serial_number,
                 room_id,
                 enabled
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             new_device_id,
             display_code,
             name.strip(),
+            category,
             device_type.strip(),
             manufacturer,
             model,
+            barcode,
+            serial_number,
             room_id,
             int(enabled),
         ))
@@ -304,29 +348,127 @@ def add_device_source(
     source_name: str | None = None,
     enabled: bool = True,
     priority: int = 100,
-) -> None:
+) -> str:
     if not isinstance(external_id, str) or not external_id.strip():
         raise ValueError("External device ID is required.")
 
+    external_id = external_id.strip()
+
     with get_connection() as connection:
+        instance = connection.execute("""
+            SELECT integration_id
+            FROM integration_instances
+            WHERE id = ?
+        """, (instance_id,)).fetchone()
+
+        if instance is None:
+            raise ValueError("Integration instance not found.")
+
+        existing = connection.execute("""
+            SELECT source_id, device_id
+            FROM device_sources
+            WHERE instance_id = ? AND external_id = ?
+        """, (instance_id, external_id)).fetchone()
+
+        if existing is not None:
+            if existing["device_id"] != device_id:
+                raise ValueError(
+                    "This external device is already linked "
+                    "to another Smart Home device."
+                )
+
+            return existing["source_id"]
+
+        source_id = str(uuid.uuid4())
+
         connection.execute("""
             INSERT INTO device_sources (
+                source_id,
                 device_id,
+                source_type,
+                handler_id,
+                integration_id,
                 instance_id,
                 external_id,
                 source_name,
                 enabled,
                 priority
             )
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, 'integration', ?, ?, ?, ?, ?, ?, ?)
         """, (
+            source_id,
             device_id,
+            instance["integration_id"],
+            instance["integration_id"],
             instance_id,
-            external_id.strip(),
+            external_id,
             source_name,
             int(enabled),
             priority,
         ))
+
+    return source_id
+
+
+def add_core_device_source(
+    device_id: str,
+    handler_id: str,
+    external_id: str,
+    source_name: str | None = None,
+    enabled: bool = True,
+    priority: int = 100,
+) -> str:
+    if not isinstance(handler_id, str) or not handler_id.strip():
+        raise ValueError("Core handler ID is required.")
+
+    if not isinstance(external_id, str) or not external_id.strip():
+        raise ValueError("External device ID is required.")
+
+    handler_id = handler_id.strip()
+    external_id = external_id.strip()
+
+    with get_connection() as connection:
+        existing = connection.execute("""
+            SELECT source_id
+            FROM device_sources
+            WHERE device_id = ?
+                AND source_type = 'core'
+                AND handler_id = ?
+                AND external_id = ?
+        """, (
+            device_id,
+            handler_id,
+            external_id,
+        )).fetchone()
+
+        if existing is not None:
+            return existing["source_id"]
+
+        source_id = str(uuid.uuid4())
+
+        connection.execute("""
+            INSERT INTO device_sources (
+                source_id,
+                device_id,
+                source_type,
+                handler_id,
+                external_id,
+                source_name,
+                enabled,
+                priority
+            )
+            VALUES (?, ?, 'core', ?, ?, ?, ?, ?)
+        """, (
+            source_id,
+            device_id,
+            handler_id,
+            external_id,
+            source_name,
+            int(enabled),
+            priority,
+        ))
+
+    return source_id
 
 
 def update_device_source(
@@ -373,6 +515,49 @@ def update_device_source(
     return cursor.rowcount > 0
 
 
+def update_device_source_by_id(
+    source_id: str,
+    *,
+    source_name: str | None = None,
+    enabled: bool | None = None,
+    priority: int | None = None,
+) -> bool:
+    updates = {}
+
+    if source_name is not None:
+        updates["source_name"] = source_name
+
+    if enabled is not None:
+        updates["enabled"] = int(enabled)
+
+    if priority is not None:
+        updates["priority"] = priority
+
+    if not updates:
+        return False
+
+    assignments = ", ".join(
+        f'"{field}" = ?'
+        for field in updates
+    )
+
+    values = list(updates.values())
+    values.append(source_id)
+
+    with get_connection() as connection:
+        cursor = connection.execute(
+            f"""
+            UPDATE device_sources
+            SET {assignments},
+                updated_at = CURRENT_TIMESTAMP
+            WHERE source_id = ?
+            """,
+            values,
+        )
+
+    return cursor.rowcount > 0
+
+
 def remove_device_source(
     device_id: str,
     instance_id: str,
@@ -386,6 +571,16 @@ def remove_device_source(
     return cursor.rowcount > 0
 
 
+def remove_device_source_by_id(source_id: str) -> bool:
+    with get_connection() as connection:
+        cursor = connection.execute("""
+            DELETE FROM device_sources
+            WHERE source_id = ?
+        """, (source_id,))
+
+    return cursor.rowcount > 0
+
+
 def set_device_source_secret(
     device_id: str,
     instance_id: str,
@@ -393,21 +588,28 @@ def set_device_source_secret(
     encrypted_value: bytes,
 ) -> None:
     with get_connection() as connection:
+        row = connection.execute("""
+            SELECT source_id
+            FROM device_sources
+            WHERE device_id = ? AND instance_id = ?
+        """, (device_id, instance_id)).fetchone()
+
+        if row is None:
+            raise ValueError("Device source not found.")
+
         connection.execute("""
             INSERT INTO device_source_secrets (
-                device_id,
-                instance_id,
+                source_id,
                 secret_key,
                 encrypted_value
             )
-            VALUES (?, ?, ?, ?)
-            ON CONFLICT(device_id, instance_id, secret_key)
+            VALUES (?, ?, ?)
+            ON CONFLICT(source_id, secret_key)
             DO UPDATE SET
                 encrypted_value = excluded.encrypted_value,
                 updated_at = CURRENT_TIMESTAMP
         """, (
-            device_id,
-            instance_id,
+            row["source_id"],
             secret_key,
             encrypted_value,
         ))
@@ -420,11 +622,13 @@ def get_device_source_secret(
 ) -> bytes | None:
     with get_connection() as connection:
         row = connection.execute("""
-            SELECT encrypted_value
-            FROM device_source_secrets
-            WHERE device_id = ?
-                AND instance_id = ?
-                AND secret_key = ?
+            SELECT dss.encrypted_value
+            FROM device_source_secrets AS dss
+            JOIN device_sources AS ds
+                ON ds.source_id = dss.source_id
+            WHERE ds.device_id = ?
+                AND ds.instance_id = ?
+                AND dss.secret_key = ?
         """, (
             device_id,
             instance_id,
@@ -442,14 +646,141 @@ def delete_device_source_secret(
     with get_connection() as connection:
         cursor = connection.execute("""
             DELETE FROM device_source_secrets
-            WHERE device_id = ?
-                AND instance_id = ?
-                AND secret_key = ?
+            WHERE source_id = (
+                SELECT source_id
+                FROM device_sources
+                WHERE device_id = ? AND instance_id = ?
+            )
+            AND secret_key = ?
         """, (
             device_id,
             instance_id,
             secret_key,
         ))
+
+    return cursor.rowcount > 0
+
+
+def set_device_image(
+    device_id: str,
+    *,
+    asset_key: str,
+    filename: str,
+    image_source: str,
+    image_type: str = "model",
+    original_filename: str | None = None,
+    mime_type: str | None = None,
+    source_url: str | None = None,
+    image_role: str = "primary",
+) -> str:
+    if not asset_key or not asset_key.strip():
+        raise ValueError("Image asset key is required.")
+
+    if not filename or not filename.strip():
+        raise ValueError("Image filename is required.")
+
+    if not image_source or not image_source.strip():
+        raise ValueError("Image source is required.")
+
+    with get_connection() as connection:
+        device = connection.execute(
+            "SELECT id FROM devices WHERE id = ?",
+            (device_id,),
+        ).fetchone()
+
+        if device is None:
+            raise ValueError("Device not found.")
+
+        existing = connection.execute("""
+            SELECT image_id
+            FROM device_images
+            WHERE asset_key = ?
+        """, (asset_key.strip(),)).fetchone()
+
+        if existing:
+            image_id = existing["image_id"]
+
+            connection.execute("""
+                UPDATE device_images
+                SET filename = ?,
+                    original_filename = ?,
+                    image_source = ?,
+                    image_type = ?,
+                    mime_type = ?,
+                    source_url = ?,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE image_id = ?
+            """, (
+                filename.strip(),
+                original_filename,
+                image_source.strip(),
+                image_type,
+                mime_type,
+                source_url,
+                image_id,
+            ))
+        else:
+            image_id = str(uuid.uuid4())
+
+            connection.execute("""
+                INSERT INTO device_images (
+                    image_id,
+                    asset_key,
+                    filename,
+                    original_filename,
+                    image_source,
+                    image_type,
+                    mime_type,
+                    source_url
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                image_id,
+                asset_key.strip(),
+                filename.strip(),
+                original_filename,
+                image_source.strip(),
+                image_type,
+                mime_type,
+                source_url,
+            ))
+
+        connection.execute("""
+            INSERT INTO device_image_assignments (
+                device_id,
+                image_id,
+                image_role
+            )
+            VALUES (?, ?, ?)
+            ON CONFLICT(device_id, image_id, image_role)
+            DO NOTHING
+        """, (
+            device_id,
+            image_id,
+            image_role,
+        ))
+
+    return image_id
+
+
+def remove_device_image(
+    device_id: str,
+    image_id: str,
+    image_role: str | None = None,
+) -> bool:
+    with get_connection() as connection:
+        if image_role is None:
+            cursor = connection.execute("""
+                DELETE FROM device_image_assignments
+                WHERE device_id = ? AND image_id = ?
+            """, (device_id, image_id))
+        else:
+            cursor = connection.execute("""
+                DELETE FROM device_image_assignments
+                WHERE device_id = ?
+                    AND image_id = ?
+                    AND image_role = ?
+            """, (device_id, image_id, image_role))
 
     return cursor.rowcount > 0
 

@@ -5,6 +5,8 @@ import {
 } from "/assets/js/i18n.js";
 
 const API = "/api/integrations/tuya_cloud/connections";
+const DEVICES_API = "/api/integrations/tuya_cloud/devices";
+const REGISTER_API = "/api/devices/discovery/register";
 
 const LANGUAGES_PATH =
     "/pages/integrations/modules/tuya/cloud/languages";
@@ -26,6 +28,10 @@ async function loadTranslations() {
 
 function translate(key) {
     return translations[key] ?? key;
+}
+
+function uiText(ru, en) {
+    return getLanguage() === "ru" ? ru : en;
 }
 
 function escapeHtml(value) {
@@ -50,9 +56,7 @@ async function request(url, options = {}) {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-        throw new Error(
-            data.detail || `HTTP ${response.status}`
-        );
+        throw new Error(data.detail || `HTTP ${response.status}`);
     }
 
     return data;
@@ -87,6 +91,28 @@ function getDeviceName(device) {
         translate("device");
 }
 
+function getDeviceRegistrationInfo(device) {
+    const registeredDevice = device.registered_device;
+
+    if (!registeredDevice) {
+        return {
+            registered: false,
+            cloudConnected: false,
+            sources: []
+        };
+    }
+
+    const sources = registeredDevice.sources || [];
+
+    return {
+        registered: true,
+        cloudConnected: sources.some(
+            source => source.integration_id === "tuya_cloud"
+        ),
+        sources
+    };
+}
+
 function renderDevices(container, devices) {
     if (!Array.isArray(devices) || devices.length === 0) {
         container.innerHTML = `
@@ -99,11 +125,41 @@ function renderDevices(container, devices) {
 
     container.innerHTML = devices.map(device => {
         const online = device.online === true;
+        const registration = getDeviceRegistrationInfo(device);
+
+        let registrationHtml = "";
+
+        if (registration.cloudConnected) {
+            registrationHtml = `
+                <span class="cloud-device-registered">
+                    ${escapeHtml(uiText("Добавлено", "Added"))}
+                </span>
+            `;
+        } else {
+            registrationHtml = `
+                <button
+                    type="button"
+                    class="cloud-button cloud-button-primary cloud-device-add"
+                    data-cloud-add-device="${escapeHtml(device.id)}"
+                >
+                    ${escapeHtml(uiText("Добавить", "Add"))}
+                </button>
+            `;
+        }
+
+        const sourceNames = registration.sources
+            .map(source => source.source_name)
+            .filter(Boolean);
 
         return `
             <article class="cloud-device">
                 <div class="cloud-device-icon">
-                    <span>⌂</span>
+                    <img
+                        src="/assets/icons/Cloud.png"
+                        alt="Tuya Cloud"
+                        width="24"
+                        height="24"
+                    >
                 </div>
 
                 <div class="cloud-device-info">
@@ -120,15 +176,26 @@ function renderDevices(container, devices) {
                         ${escapeHtml(translate("category"))}:
                         ${escapeHtml(device.category || "—")}
                     </span>
+
+                    ${registration.registered && sourceNames.length
+                        ? `<span class="cloud-device-category">
+                            ${escapeHtml(uiText("Источники", "Sources"))}:
+                            ${escapeHtml(sourceNames.join(", "))}
+                           </span>`
+                        : ""}
                 </div>
 
-                <span class="cloud-device-status ${online ? "is-online" : "is-offline"}">
-                    ${escapeHtml(
-                        online
-                            ? translate("online")
-                            : translate("offline")
-                    )}
-                </span>
+                <div class="cloud-device-actions">
+                    <span class="cloud-device-status ${online ? "is-online" : "is-offline"}">
+                        ${escapeHtml(
+                            online
+                                ? translate("online")
+                                : translate("offline")
+                        )}
+                    </span>
+
+                    ${registrationHtml}
+                </div>
             </article>
         `;
     }).join("");
@@ -212,10 +279,10 @@ export async function init() {
         `;
 
         const response = await request(
-            `${API}/${encodeURIComponent(connection.id)}/devices`
+            `${DEVICES_API}?instance_id=${encodeURIComponent(connection.id)}`
         );
 
-        const devices = response.result || [];
+        const devices = response.devices;
 
         if (!Array.isArray(devices)) {
             throw new Error("Unexpected Tuya devices response.");
@@ -223,9 +290,51 @@ export async function init() {
 
         renderDevices(elements.devices, devices);
 
-        elements.deviceCount.textContent = devices.length;
+        elements.deviceCount.textContent =
+            response.devices_total ?? devices.length;
+
         lastSync = Date.now();
         elements.lastSync.textContent = formatDate(lastSync);
+    }
+
+    async function addDevice(externalId, button) {
+        if (!connection || !externalId || button.disabled) {
+            return;
+        }
+
+        const originalText = button.textContent;
+
+        button.disabled = true;
+        button.textContent = uiText("Добавление...", "Adding...");
+
+        try {
+            await request(REGISTER_API, {
+                method: "POST",
+                body: JSON.stringify({
+                    integration_id: "tuya_cloud",
+                    instance_id: connection.id,
+                    external_id: externalId
+                })
+            });
+
+            await loadDevices();
+
+            showMessage(
+                uiText(
+                    "Устройство добавлено в Smart Home.",
+                    "Device added to Smart Home."
+                ),
+                "success"
+            );
+        } catch (error) {
+            button.disabled = false;
+            button.textContent = originalText;
+
+            showMessage(
+                `${uiText("Не удалось добавить устройство:", "Could not add device:")} ${error.message}`,
+                "error"
+            );
+        }
     }
 
     async function testConnection() {
@@ -284,7 +393,10 @@ export async function init() {
             const connections = await request(API);
 
             if (!Array.isArray(connections) || connections.length === 0) {
+                connection = null;
                 showMessage(translate("noConnection"), "warning");
+
+                elements.deviceCount.textContent = "0";
                 elements.devices.innerHTML = `
                     <div class="cloud-empty">
                         ${escapeHtml(translate("notConfigured"))}
@@ -293,7 +405,8 @@ export async function init() {
                 return;
             }
 
-            connection = connections[0];
+            connection = connections.find(item => item.configured)
+                || connections[0];
 
             renderConnection();
 
@@ -303,7 +416,6 @@ export async function init() {
             }
 
             await loadDevices();
-
         } catch (error) {
             showMessage(
                 `${translate("loadError")} ${error.message}`,
@@ -330,6 +442,19 @@ export async function init() {
             console.error("Tuya Cloud language update failed:", error);
         }
     }
+
+    elements.devices.addEventListener("click", event => {
+        const button = event.target.closest("[data-cloud-add-device]");
+
+        if (!button) {
+            return;
+        }
+
+        addDevice(
+            button.dataset.cloudAddDevice,
+            button
+        );
+    });
 
     elements.testButton.addEventListener("click", testConnection);
     elements.refreshButton.addEventListener("click", refreshDevices);

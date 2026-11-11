@@ -1,4 +1,5 @@
-﻿from typing import Any
+﻿
+from typing import Any
 
 from database.integrations import (
     get_integration_settings,
@@ -44,7 +45,7 @@ class TPLinkRouterAdapter:
         if device.get("type") != "router":
             return set()
 
-        return {"network_status", "dhcp_clients"}
+        return {"dhcp_clients"}
 
     def get_commands(
         self,
@@ -53,16 +54,12 @@ class TPLinkRouterAdapter:
         return {}
 
     def get_state(self, device: dict[str, Any]) -> dict[str, Any]:
-        client = self._get_client(device)
-
-        return {
-            "online": client.is_online(),
-        }
+        return {}
 
     def get_dhcp_clients(
         self,
         device: dict[str, Any],
-    ) -> list[dict[str, str]]:
+    ) -> list[dict[str, Any]]:
         client = self._get_client(device)
         return client.get_dhcp_clients()
 

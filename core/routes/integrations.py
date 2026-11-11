@@ -1,34 +1,43 @@
-﻿from typing import Any
+﻿
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from database.devices import (
-    get_device,
-    get_devices,
-    get_device_source_secret,
-)
+from database.devices import get_device, get_devices
 from database.integrations import (
     add_integration_instance,
     get_integration,
     get_integration_instance,
     get_integration_instances,
     get_integration_settings,
-    get_integration_secret,
     set_integration_setting,
     set_integration_secret,
 )
 from integrations.catalog import PLATFORM_CATALOG
-from integrations.tuya.cloud.client import (
-    TUYA_REGIONS,
-    TuyaCloudClient,
-)
-from integrations.tuya.local.devices.plug import TuyaPlugIntegration
 from services.integration_manager import integration_manager
 from services.integration_registry import integration_registry
-from services.secret_service import encrypt_secret, decrypt_secret
+from services.secret_service import encrypt_secret
 
 
 router = APIRouter()
+
+
+def _get_adapter(integration_id: str):
+    if not integration_registry.is_registered(integration_id):
+        raise HTTPException(
+            status_code=404,
+            detail="Integration adapter is not registered.",
+        )
+
+    adapter = integration_registry.get(integration_id)
+
+    if adapter is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Integration adapter was not found.",
+        )
+
+    return adapter
 
 
 def _method_catalog(method: dict[str, Any]) -> dict[str, Any]:
@@ -66,118 +75,125 @@ def _method_catalog(method: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _get_tuya_cloud_client(instance_id: str) -> TuyaCloudClient:
+def _get_instance_or_404(
+    integration_id: str,
+    instance_id: str,
+) -> dict[str, Any]:
     instance = get_integration_instance(instance_id)
 
-    if instance is None or instance["integration_id"] != "tuya_cloud":
+    if instance is None or instance["integration_id"] != integration_id:
         raise HTTPException(
             status_code=404,
-            detail="Tuya Cloud connection not found.",
+            detail="Integration connection not found.",
         )
 
-    settings = get_integration_settings(instance_id)
+    return instance
 
-    region = settings.get("region", {}).get("value")
 
-    access_id = get_integration_secret(instance_id, "access_id")
-    access_secret = get_integration_secret(instance_id, "access_secret")
+def _safe_settings(instance_id: str) -> dict[str, Any]:
+    return get_integration_settings(instance_id)
 
-    if not region or not access_id or not access_secret:
+
+def _normalize_device(
+    adapter: Any,
+    raw_device: dict[str, Any],
+    instance_id: str | None = None,
+) -> dict[str, Any]:
+    normalizer = getattr(adapter, "normalize_device", None)
+
+    if not callable(normalizer):
         raise HTTPException(
-            status_code=409,
-            detail="Tuya Cloud connection is not configured.",
+            status_code=501,
+            detail="This integration does not support device normalization.",
         )
 
-    return TuyaCloudClient(
-        access_id=decrypt_secret(access_id),
-        access_secret=decrypt_secret(access_secret),
-        region=region,
+    normalized = normalizer(raw_device, instance_id)
+
+    if not isinstance(normalized, dict):
+        raise HTTPException(
+            status_code=502,
+            detail="Integration returned an invalid device.",
+        )
+
+    return normalized
+
+
+def _get_registered_devices(
+    integration_id: str,
+) -> dict[str, dict[str, Any]]:
+    registered = {}
+
+    for item in get_devices():
+        device = get_device(item["id"])
+
+        if device is None:
+            continue
+
+        properties = device.get("properties", {})
+
+        for source in device.get("sources", []):
+            if source.get("integration_id") != integration_id:
+                continue
+
+            external_id = source.get("external_id")
+
+            if not external_id:
+                continue
+
+            registered[str(external_id)] = {
+                "id": device["id"],
+                "name": device.get("name"),
+                "category": device.get("category"),
+                "type": device.get("type"),
+                "properties": properties,
+                "source": {
+                    "integration_id": integration_id,
+                    "source_name": source.get("source_name"),
+                    "instance_id": source.get("instance_id"),
+                    "external_id": external_id,
+                    "enabled": bool(source.get("enabled")),
+                    "connection_enabled": bool(
+                        source.get("connection_enabled")
+                    ),
+                    "integration_enabled": bool(
+                        source.get("integration_enabled")
+                    ),
+                },
+            }
+
+    return registered
+
+
+def _get_local_connection_device(
+    instance_id: str,
+) -> dict[str, Any]:
+    for item in get_devices():
+        device = get_device(item["id"])
+
+        if device is None:
+            continue
+
+        for source in device.get("sources", []):
+            if (
+                source.get("integration_id") == "tuya_local"
+                and source.get("instance_id") == instance_id
+            ):
+                if not source.get("enabled"):
+                    raise HTTPException(
+                        status_code=409,
+                        detail="Device source is disabled.",
+                    )
+
+                return {
+                    **device,
+                    "instance_id": instance_id,
+                    "external_id": source.get("external_id"),
+                }
+
+    raise HTTPException(
+        status_code=404,
+        detail="No registered Tuya Local device uses this connection.",
     )
-
-
-def _get_tuya_local_client(device_id: str):
-    device = get_device(device_id)
-
-    if device is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Device not found.",
-        )
-
-    if device.get("type") != "smart_plug":
-        raise HTTPException(
-            status_code=409,
-            detail="This Tuya Local device type is not supported yet.",
-        )
-
-    sources = device.get("sources", [])
-
-    source = next(
-        (
-            item
-            for item in sources
-            if item.get("integration_id") == "tuya_local"
-        ),
-        None,
-    )
-
-    if source is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Tuya Local source not found for this device.",
-        )
-
-    if not source.get("enabled"):
-        raise HTTPException(
-            status_code=409,
-            detail="Tuya Local device source is disabled.",
-        )
-
-    if not source.get("connection_enabled"):
-        raise HTTPException(
-            status_code=409,
-            detail="Tuya Local connection is disabled.",
-        )
-
-    if not source.get("integration_enabled"):
-        raise HTTPException(
-            status_code=409,
-            detail="Tuya Local integration is disabled.",
-        )
-
-    properties = device.get("properties", {})
-
-    ip_address = properties.get("ip_address", {}).get("value")
-    version = properties.get("tuya_version", {}).get("value", "3.5")
-
-    if not ip_address:
-        raise HTTPException(
-            status_code=409,
-            detail="Local IP address is not configured.",
-        )
-
-    encrypted_key = get_device_source_secret(
-        device_id,
-        source["instance_id"],
-        "local_key",
-    )
-
-    if not encrypted_key:
-        raise HTTPException(
-            status_code=409,
-            detail="Tuya Local Key is not configured.",
-        )
-
-    local_key = decrypt_secret(encrypted_key)
-
-    client = TuyaPlugIntegration(
-        device_id=source["external_id"],
-        ip_address=ip_address,
-        local_key=local_key,
-        version=version,
-    )
-
-    return device, source, client
 
 
 @router.get("/api/integrations/catalog")
@@ -192,6 +208,33 @@ def get_integrations_catalog():
         }
         for platform in PLATFORM_CATALOG
     ]
+
+
+@router.get(
+    "/api/integrations/{integration_id}/connection-setup-schema"
+)
+def get_connection_setup_schema(
+    integration_id: str,
+    device_type: str | None = None,
+):
+    try:
+        return integration_registry.get_connection_setup_schema(
+            integration_id,
+            context={"device_type": device_type},
+        )
+    except LookupError as error:
+        raise HTTPException(
+            status_code=404,
+            detail=str(error),
+        ) from error
+    except Exception as error:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Could not retrieve connection setup schema: "
+                f"{type(error).__name__}"
+            ),
+        ) from error
 
 
 @router.get("/api/integrations/{integration_id}/status")
@@ -237,9 +280,15 @@ def update_integration_enabled(
             enabled,
         )
     except LookupError as error:
-        raise HTTPException(status_code=404, detail=str(error)) from error
+        raise HTTPException(
+            status_code=404,
+            detail=str(error),
+        ) from error
     except ValueError as error:
-        raise HTTPException(status_code=409, detail=str(error)) from error
+        raise HTTPException(
+            status_code=409,
+            detail=str(error),
+        ) from error
     except Exception as error:
         raise HTTPException(
             status_code=503,
@@ -248,36 +297,66 @@ def update_integration_enabled(
 
 
 # ---------------------------------------------------------
-# Tuya Cloud
+# Generic connection management
 # ---------------------------------------------------------
 
-@router.get("/api/integrations/tuya_cloud/connections")
-def get_tuya_cloud_connections():
-    connections = get_integration_instances("tuya_cloud")
+@router.get("/api/integrations/{integration_id}/connections")
+def get_integration_connections(integration_id: str):
+    if get_integration(integration_id) is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Integration not found.",
+        )
 
-    return [
-        {
+    connections = get_integration_instances(integration_id)
+
+    adapter = (
+        integration_registry.get(integration_id)
+        if integration_registry.is_registered(integration_id)
+        else None
+    )
+
+    configuration_checker = getattr(
+        adapter,
+        "is_configured",
+        None,
+    )
+
+    result = []
+
+    for item in connections:
+        configured = (
+            bool(configuration_checker(item["id"]))
+            if callable(configuration_checker)
+            else None
+        )
+
+        result.append({
             "id": item["id"],
             "name": item["name"],
             "enabled": bool(item["enabled"]),
             "integration_id": item["integration_id"],
-            "settings": get_integration_settings(item["id"]),
-            "configured": bool(
-                get_integration_secret(item["id"], "access_id")
-                and get_integration_secret(item["id"], "access_secret")
-            ),
-        }
-        for item in connections
-    ]
+            "configured": configured,
+            "settings": _safe_settings(item["id"]),
+        })
+
+    return result
 
 
-@router.post("/api/integrations/tuya_cloud/connections")
-def create_tuya_cloud_connection(payload: dict[str, Any]):
+@router.post("/api/integrations/{integration_id}/connections")
+def create_integration_connection(
+    integration_id: str,
+    payload: dict[str, Any],
+):
+    if get_integration(integration_id) is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Integration not found.",
+        )
+
     name = payload.get("name")
-    region = payload.get("region")
-    user_id = payload.get("user_id")
-    access_id = payload.get("access_id")
-    access_secret = payload.get("access_secret")
+    settings = payload.get("settings", {})
+    secrets = payload.get("secrets", {})
 
     if not isinstance(name, str) or not name.strip():
         raise HTTPException(
@@ -285,63 +364,41 @@ def create_tuya_cloud_connection(payload: dict[str, Any]):
             detail="Connection name is required.",
         )
 
-    if region not in TUYA_REGIONS:
+    if not isinstance(settings, dict) or not isinstance(secrets, dict):
         raise HTTPException(
             status_code=422,
-            detail="Unsupported Tuya Cloud region.",
-        )
-
-    if not isinstance(user_id, str) or not user_id.strip():
-        raise HTTPException(
-            status_code=422,
-            detail="Tuya User ID is required.",
-        )
-
-    if not isinstance(access_id, str) or not access_id.strip():
-        raise HTTPException(
-            status_code=422,
-            detail="Tuya Access ID is required.",
-        )
-
-    if not isinstance(access_secret, str) or not access_secret.strip():
-        raise HTTPException(
-            status_code=422,
-            detail="Tuya Access Secret is required.",
-        )
-
-    if get_integration("tuya_cloud") is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Tuya Cloud integration is not registered in the database.",
+            detail="Settings and secrets must be objects.",
         )
 
     try:
         connection = add_integration_instance(
-            integration_id="tuya_cloud",
-            name=name,
+            integration_id=integration_id,
+            name=name.strip(),
         )
 
         instance_id = connection["id"]
 
-        set_integration_setting(instance_id, "region", region)
-        set_integration_setting(instance_id, "user_id", user_id.strip())
+        for key, value in settings.items():
+            if isinstance(key, str) and key:
+                set_integration_setting(instance_id, key, value)
 
-        set_integration_secret(
-            instance_id,
-            "access_id",
-            encrypt_secret(access_id.strip()),
-        )
-
-        set_integration_secret(
-            instance_id,
-            "access_secret",
-            encrypt_secret(access_secret.strip()),
-        )
+        for key, value in secrets.items():
+            if (
+                isinstance(key, str)
+                and key
+                and isinstance(value, str)
+                and value
+            ):
+                set_integration_secret(
+                    instance_id,
+                    key,
+                    encrypt_secret(value),
+                )
 
         return {
             "id": instance_id,
             "name": connection["name"],
-            "integration_id": "tuya_cloud",
+            "integration_id": integration_id,
             "enabled": bool(connection["enabled"]),
             "configured": True,
         }
@@ -349,212 +406,303 @@ def create_tuya_cloud_connection(payload: dict[str, Any]):
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=f"Could not create Tuya Cloud connection: {type(error).__name__}",
+            detail=(
+                "Could not create integration connection: "
+                f"{type(error).__name__}"
+            ),
         ) from error
 
 
-@router.put("/api/integrations/tuya_cloud/connections/{instance_id}")
-def update_tuya_cloud_connection(
+@router.put(
+    "/api/integrations/{integration_id}/connections/{instance_id}"
+)
+def update_integration_connection(
+    integration_id: str,
     instance_id: str,
     payload: dict[str, Any],
 ):
-    instance = get_integration_instance(instance_id)
+    instance = _get_instance_or_404(integration_id, instance_id)
 
-    if instance is None or instance["integration_id"] != "tuya_cloud":
+    settings = payload.get("settings", {})
+    secrets = payload.get("secrets", {})
+
+    if not isinstance(settings, dict) or not isinstance(secrets, dict):
         raise HTTPException(
-            status_code=404,
-            detail="Tuya Cloud connection not found.",
+            status_code=422,
+            detail="Settings and secrets must be objects.",
         )
 
-    region = payload.get("region")
-    user_id = payload.get("user_id")
-    access_id = payload.get("access_id")
-    access_secret = payload.get("access_secret")
-
-    if region is not None:
-        if region not in TUYA_REGIONS:
-            raise HTTPException(
-                status_code=422,
-                detail="Unsupported Tuya Cloud region.",
-            )
-
-        set_integration_setting(instance_id, "region", region)
-
-    if user_id is not None:
-        if not isinstance(user_id, str) or not user_id.strip():
-            raise HTTPException(
-                status_code=422,
-                detail="Tuya User ID cannot be empty.",
-            )
-
-        set_integration_setting(instance_id, "user_id", user_id.strip())
-
-    if access_id is not None:
-        if not isinstance(access_id, str) or not access_id.strip():
-            raise HTTPException(
-                status_code=422,
-                detail="Tuya Access ID cannot be empty.",
-            )
-
-        set_integration_secret(
-            instance_id,
-            "access_id",
-            encrypt_secret(access_id.strip()),
-        )
-
-    if access_secret is not None:
-        if not isinstance(access_secret, str) or not access_secret.strip():
-            raise HTTPException(
-                status_code=422,
-                detail="Tuya Access Secret cannot be empty.",
-            )
-
-        set_integration_secret(
-            instance_id,
-            "access_secret",
-            encrypt_secret(access_secret.strip()),
-        )
-
-    return {
-        "id": instance_id,
-        "name": instance["name"],
-        "updated": True,
-    }
-
-
-@router.post("/api/integrations/tuya_cloud/connections/{instance_id}/test")
-def test_tuya_cloud_connection(instance_id: str):
     try:
-        client = _get_tuya_cloud_client(instance_id)
+        for key, value in settings.items():
+            if isinstance(key, str) and key:
+                set_integration_setting(instance_id, key, value)
 
-        settings = get_integration_settings(instance_id)
-        user_id = settings.get("user_id", {}).get("value")
-
-        if not user_id:
-            raise HTTPException(
-                status_code=409,
-                detail="Tuya User ID is not configured.",
-            )
-
-        response = client.get_user_devices(user_id=user_id)
-        devices = response.get("result") or []
-
-        if not isinstance(devices, list):
-            raise HTTPException(
-                status_code=502,
-                detail="Unexpected Tuya Cloud devices response.",
-            )
+        for key, value in secrets.items():
+            if (
+                isinstance(key, str)
+                and key
+                and isinstance(value, str)
+                and value
+            ):
+                set_integration_secret(
+                    instance_id,
+                    key,
+                    encrypt_secret(value),
+                )
 
         return {
-            "connected": True,
-            "integration_id": "tuya_cloud",
-            "devices_total": len(devices),
+            "id": instance_id,
+            "name": instance["name"],
+            "integration_id": integration_id,
+            "updated": True,
         }
 
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Could not update integration connection: "
+                f"{type(error).__name__}"
+            ),
+        ) from error
+
+
+@router.post(
+    "/api/integrations/{integration_id}/connections/{instance_id}/test"
+)
+def test_integration_connection(
+    integration_id: str,
+    instance_id: str,
+    payload: dict[str, Any] | None = None,
+):
+    _get_instance_or_404(integration_id, instance_id)
+    adapter = _get_adapter(integration_id)
+
+    tester = getattr(adapter, "test_connection", None)
+
+    if not callable(tester):
+        raise HTTPException(
+            status_code=501,
+            detail="This integration does not support connection testing.",
+        )
+
+    try:
+        if integration_id == "tuya_local":
+            test_target = _get_local_connection_device(instance_id)
+        else:
+            test_target = instance_id
+
+        result = tester(test_target)
+
+        if not isinstance(result, dict):
+            raise RuntimeError("Integration returned an invalid test result.")
+
+        return result
+
     except HTTPException:
         raise
     except Exception as error:
         raise HTTPException(
             status_code=502,
-            detail=f"Tuya Cloud connection failed: {type(error).__name__}",
+            detail=f"Connection test failed: {type(error).__name__}",
         ) from error
 
 
-@router.get("/api/integrations/tuya_cloud/connections/{instance_id}/devices")
-def get_tuya_cloud_devices(instance_id: str):
-    try:
-        client = _get_tuya_cloud_client(instance_id)
+# ---------------------------------------------------------
+# Generic device discovery
+# ---------------------------------------------------------
 
-        settings = get_integration_settings(instance_id)
-        user_id = settings.get("user_id", {}).get("value")
+@router.get("/api/integrations/{integration_id}/devices")
+def get_integration_devices(
+    integration_id: str,
+    instance_id: str | None = None,
+    page: int = 1,
+    page_size: int = 50,
+):
+    if page < 1 or page_size < 1 or page_size > 100:
+        raise HTTPException(
+            status_code=422,
+            detail="Invalid pagination parameters.",
+        )
 
-        if not user_id:
+    if get_integration(integration_id) is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Integration not found.",
+        )
+
+    adapter = _get_adapter(integration_id)
+    discover = getattr(adapter, "discover_devices", None)
+
+    if callable(discover):
+        try:
+            raw_devices = discover(
+                instance_id=instance_id,
+                page=page,
+                page_size=page_size,
+            )
+        except Exception as error:
             raise HTTPException(
-                status_code=409,
-                detail="Tuya User ID is not configured.",
+                status_code=502,
+                detail=f"Device discovery failed: {type(error).__name__}",
+            ) from error
+
+        if not isinstance(raw_devices, list):
+            raise HTTPException(
+                status_code=502,
+                detail="Integration returned an invalid device list.",
             )
 
-        return client.get_user_devices(user_id=user_id)
+        registered = _get_registered_devices(integration_id)
+        devices = []
 
-    except HTTPException:
-        raise
-    except Exception as error:
-        raise HTTPException(
-            status_code=502,
-            detail=f"Could not retrieve Tuya devices: {type(error).__name__}",
-        ) from error
+        for raw_device in raw_devices:
+            if not isinstance(raw_device, dict):
+                continue
 
+            normalized = _normalize_device(
+                adapter,
+                raw_device,
+                instance_id,
+            )
 
-# ---------------------------------------------------------
-# Tuya Local
-# ---------------------------------------------------------
+            external_id = str(normalized.get("external_id", ""))
+            registered_device = registered.get(external_id)
 
-@router.get("/api/integrations/tuya_local/devices")
-def get_tuya_local_devices():
-    result = []
+            devices.append({
+                **normalized,
+                "is_registered": registered_device is not None,
+                "registered_device": registered_device,
+            })
+
+        return {
+            "integration_id": integration_id,
+            "instance_id": instance_id,
+            "page": page,
+            "page_size": page_size,
+            "devices_total": len(devices),
+            "devices": devices,
+        }
+
+    registered_devices = []
 
     for item in get_devices():
-        device_id = item["id"]
-        device = get_device(device_id)
+        device = get_device(item["id"])
 
         if device is None:
             continue
 
+        properties = device.get("properties", {})
+
         for source in device.get("sources", []):
-            if source.get("integration_id") != "tuya_local":
+            if source.get("integration_id") != integration_id:
                 continue
 
-            properties = device.get("properties", {})
-            ip_address = properties.get("ip_address", {}).get("value")
-            version = properties.get("tuya_version", {}).get("value", "3.5")
+            if instance_id and source.get("instance_id") != instance_id:
+                continue
 
-            result.append({
+            ip_address = properties.get("ip_address", {})
+            tuya_version = properties.get("tuya_version", {})
+
+            registered_devices.append({
                 "id": device["id"],
-                "name": device.get("name") or "Tuya device",
+                "name": device.get("name"),
                 "type": device.get("type"),
-                "source_name": source.get("source_name") or "Tuya Local",
-                "connection_name": source.get("connection_name") or "Tuya",
-                "ip_address": ip_address,
-                "version": version,
+                "category": device.get("category"),
+                "source_name": source.get("source_name"),
+                "instance_id": source.get("instance_id"),
+                "external_id": source.get("external_id"),
+                "ip_address": (
+                    ip_address.get("value")
+                    if isinstance(ip_address, dict)
+                    else ip_address
+                ),
+                "version": (
+                    tuya_version.get("value", "3.5")
+                    if isinstance(tuya_version, dict)
+                    else tuya_version or "3.5"
+                ),
+                "properties": properties,
                 "enabled": bool(source.get("enabled")),
-                "connection_enabled": bool(source.get("connection_enabled")),
-                "integration_enabled": bool(source.get("integration_enabled")),
+                "connection_enabled": bool(
+                    source.get("connection_enabled")
+                ),
+                "integration_enabled": bool(
+                    source.get("integration_enabled")
+                ),
             })
 
-    return result
+    return {
+        "integration_id": integration_id,
+        "instance_id": instance_id,
+        "page": page,
+        "page_size": page_size,
+        "devices_total": len(registered_devices),
+        "devices": registered_devices,
+    }
 
 
-@router.post("/api/integrations/tuya_local/devices/{device_id}/test")
-def test_tuya_local_device(device_id: str):
+@router.post(
+    "/api/integrations/{integration_id}/devices/{device_id}/test"
+)
+def test_integration_device(
+    integration_id: str,
+    device_id: str,
+):
+    device = get_device(device_id)
+
+    if device is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Device not found.",
+        )
+
+    adapter = _get_adapter(integration_id)
+    tester = getattr(adapter, "test_connection", None)
+
+    if not callable(tester):
+        raise HTTPException(
+            status_code=501,
+            detail="This integration does not support device testing.",
+        )
+
+    source = next(
+        (
+            item
+            for item in device.get("sources", [])
+            if item.get("integration_id") == integration_id
+        ),
+        None,
+    )
+
+    if source is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Device source not found.",
+        )
+
+    if not source.get("enabled"):
+        raise HTTPException(
+            status_code=409,
+            detail="Device source is disabled.",
+        )
+
     try:
-        device, source, client = _get_tuya_local_client(device_id)
-        response = client.get_status()
+        result = tester({
+            **device,
+            "instance_id": source.get("instance_id"),
+            "external_id": source.get("external_id"),
+        })
 
-        if not isinstance(response, dict):
-            raise RuntimeError("Unexpected Tuya Local response.")
+        if not isinstance(result, dict):
+            raise RuntimeError("Integration returned an invalid test result.")
 
-        dps = response.get("dps", {})
-        power = dps.get("1")
-
-        return {
-            "connected": True,
-            "device_id": device_id,
-            "name": device.get("name"),
-            "ip_address": device.get("properties", {})
-                .get("ip_address", {})
-                .get("value"),
-            "version": device.get("properties", {})
-                .get("tuya_version", {})
-                .get("value", "3.5"),
-            "power": power,
-            "online": True,
-            "dps": dps,
-        }
+        return result
 
     except HTTPException:
         raise
     except Exception as error:
         raise HTTPException(
             status_code=502,
-            detail=f"Tuya Local connection failed: {type(error).__name__}",
+            detail=f"Device test failed: {type(error).__name__}",
         ) from error

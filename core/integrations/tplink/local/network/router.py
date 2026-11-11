@@ -1,5 +1,4 @@
 
-import subprocess
 from dataclasses import asdict, dataclass
 
 from tplinkrouterc6u import TplinkRouter
@@ -22,29 +21,13 @@ class TPLinkRouterIntegration:
         username: str,
         password: str,
         timeout: int = 15,
-    ) -> None:
+    ):
         self.host = host
         self.username = username
         self._password = password
         self.timeout = timeout
 
-    def is_online(self) -> bool:
-        """Check whether the router responds to ping."""
-        host = self.host.removeprefix("http://").removeprefix("https://")
-
-        try:
-            result = subprocess.run(
-                ["ping", "-n", "1", "-w", "1500", host],
-                capture_output=True,
-                timeout=3,
-                check=False,
-            )
-            return result.returncode == 0
-        except (OSError, subprocess.TimeoutExpired):
-            return False
-
-    def get_dhcp_clients(self) -> list[dict[str, str]]:
-        """Return DHCP leases as dictionaries."""
+    def get_dhcp_clients(self) -> list[dict]:
         router = TplinkRouter(
             host=self.host,
             username=self.username,
@@ -67,5 +50,6 @@ class TPLinkRouterIntegration:
             ]
 
             return [asdict(client) for client in clients]
+
         finally:
             router.logout()

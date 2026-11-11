@@ -1,4 +1,8 @@
+
 .cloud-page {
+    --cloud-accent: #2878d0;
+    --cloud-accent-soft: #eaf3ff;
+
     display: flex;
     flex-direction: column;
     gap: 24px;
@@ -37,9 +41,15 @@
     height: 52px;
     flex-shrink: 0;
     border-radius: 14px;
-    background: rgba(22, 138, 104, 0.1);
-    color: var(--color-primary);
+    background: var(--cloud-accent-soft);
+    color: var(--cloud-accent);
     font-size: 28px;
+}
+
+.cloud-icon svg {
+    display: block;
+    width: 28px;
+    height: 28px;
 }
 
 .cloud-title h1 {
@@ -93,7 +103,11 @@
     white-space: nowrap;
 }
 
-.cloud-status.is-connected,
+.cloud-status.is-connected {
+    background: #e8f2ff;
+    color: #2168b5;
+}
+
 .cloud-device-status.is-online {
     background: #e7f6ef;
     color: #168451;
@@ -155,12 +169,12 @@
 }
 
 .cloud-button-primary {
-    background: var(--color-primary, #168a68);
+    background: var(--cloud-accent);
     color: #ffffff;
 }
 
 .cloud-button-primary:hover:not(:disabled) {
-    opacity: 0.88;
+    background: #2168b5;
 }
 
 .cloud-button-secondary {

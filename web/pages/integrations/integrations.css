@@ -158,12 +158,8 @@
     flex-direction: column;
     gap: 6px;
     min-width: 0;
-    color: var(--color-muted, #777);
+    color: inherit;
     text-decoration: none;
-}
-
-.integration-method:hover {
-    color: var(--color-primary, #2477d4);
 }
 
 .integration-method__info {
@@ -173,8 +169,32 @@
     gap: 6px;
 }
 
+.integration-method__name-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .integration-method__name {
     font-size: 13px;
+}
+
+.integration-method-row--local .integration-method__name {
+    color: #168A68;
+}
+
+.integration-method-row--cloud .integration-method__name {
+    color: #2878d0;
+}
+
+/* Connection icons */
+
+.integration-connection-icon {
+    display: block;
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
 }
 
 /* Method detail cards */
@@ -189,6 +209,25 @@
     gap: 8px;
     color: var(--color-muted, #777);
     font-size: 13px;
+}
+
+.integration-method-card__title {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+}
+
+.integration-method-card__title h3 {
+    margin: 0;
+}
+
+.integration-method-card--local .integration-method-card__title h3 {
+    color: #168A68;
+}
+
+.integration-method-card--cloud .integration-method-card__title h3 {
+    color: #2878d0;
 }
 
 /* Integration toggle */
@@ -222,7 +261,12 @@
 }
 
 .integration-toggle[aria-checked="true"] .integration-toggle__track {
-    background: var(--color-primary, #2477d4);
+    background: #168A68;
+}
+
+.integration-method-row--cloud .integration-toggle[aria-checked="true"] .integration-toggle__track,
+.integration-method-card--cloud .integration-toggle[aria-checked="true"] .integration-toggle__track {
+    background: #2878d0;
 }
 
 .integration-toggle__thumb {

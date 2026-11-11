@@ -7,6 +7,11 @@ import {
 
 const CATALOG_URL = "/api/integrations/catalog";
 
+const CONNECTION_ICONS = {
+    local: "/assets/icons/Local.png",
+    cloud: "/assets/icons/Cloud.png"
+};
+
 const STATUS_KEYS = {
     enabled: "integrations.statusEnabled",
     disabled: "integrations.statusDisabled",
@@ -101,23 +106,73 @@ function renderToggle(method, showLabel = true) {
     `;
 }
 
+function getConnectionType(method) {
+    const type = String(method.connection_type ?? "").toLowerCase();
+
+    return type === "cloud" || type === "local"
+        ? type
+        : "";
+}
+
+function sortConnectionMethods(methods) {
+    const priority = {
+        local: 0,
+        cloud: 1
+    };
+
+    return [...methods].sort((a, b) =>
+        (priority[getConnectionType(a)] ?? 2) -
+        (priority[getConnectionType(b)] ?? 2)
+    );
+}
+
+function renderConnectionIcon(connectionType) {
+    const icon = CONNECTION_ICONS[connectionType];
+
+    if (!icon) {
+        return "";
+    }
+
+    return `
+        <img
+            class="integration-connection-icon"
+            src="${icon}"
+            alt=""
+            aria-hidden="true"
+        >
+    `;
+}
+
 function renderPlatformCard(platform) {
-    const methods = platform.methods.map(method => `
-        <div class="integration-method-row">
-            <a class="integration-method"
-               href="${escapeHtml(method.route)}"
-               data-route="${escapeHtml(method.route)}">
-                <span class="integration-method__info">
-                    <span class="integration-method__name"
-                          data-i18n="${escapeHtml(method.name_key)}">
-                        ${escapeHtml(method.id)}
+    const methods = sortConnectionMethods(platform.methods).map(method => {
+        const connectionType = getConnectionType(method);
+        const methodClass = connectionType
+            ? `integration-method-row--${connectionType}`
+            : "";
+
+        return `
+            <div class="integration-method-row ${methodClass}">
+                <a class="integration-method"
+                   href="${escapeHtml(method.route)}"
+                   data-route="${escapeHtml(method.route)}">
+
+                    <span class="integration-method__info">
+                        <span class="integration-method__name-row">
+                            <span class="integration-method__name"
+                                  data-i18n="${escapeHtml(method.name_key)}">
+                                ${escapeHtml(method.id)}
+                            </span>
+                            ${renderConnectionIcon(connectionType)}
+                        </span>
+
+                        ${renderStatus(method.status)}
                     </span>
-                    ${renderStatus(method.status)}
-                </span>
-            </a>
-            ${renderToggle(method, false)}
-        </div>
-    `).join("");
+                </a>
+
+                ${renderToggle(method, false)}
+            </div>
+        `;
+    }).join("");
 
     return `
         <article class="integration-card">
@@ -158,10 +213,13 @@ function renderPlatformCard(platform) {
 }
 
 function renderMethodCard(method, platform) {
-    const icon = method.connection_type === "cloud" ? "\u2601" : "\u2301";
+    const connectionType = getConnectionType(method);
+    const methodClass = connectionType
+        ? `integration-method-card--${connectionType}`
+        : "";
 
     return `
-        <article class="integration-card integration-method-card">
+        <article class="integration-card integration-method-card ${methodClass}">
             <a class="integration-card__main"
                href="${escapeHtml(method.route)}"
                data-route="${escapeHtml(method.route)}">
@@ -177,17 +235,20 @@ function renderMethodCard(method, platform) {
                 </div>
 
                 <div class="integration-method-card__type">
-                    <span aria-hidden="true">${icon}</span>
-                    <span data-i18n="${method.connection_type === "cloud"
+                    <span data-i18n="${connectionType === "cloud"
                         ? "integrations.cloudConnection"
                         : "integrations.localConnection"}">
-                        ${escapeHtml(method.connection_type)}
+                        ${escapeHtml(connectionType)}
                     </span>
                 </div>
 
-                <h3 data-i18n="${escapeHtml(method.name_key)}">
-                    ${escapeHtml(method.id)}
-                </h3>
+                <div class="integration-method-card__title">
+                    <h3 data-i18n="${escapeHtml(method.name_key)}">
+                        ${escapeHtml(method.id)}
+                    </h3>
+
+                    ${renderConnectionIcon(connectionType)}
+                </div>
 
                 <p data-i18n="${escapeHtml(method.description_key)}">
                     ${escapeHtml(method.id)}
@@ -232,7 +293,7 @@ function renderPlatformMethods(container, catalog, platformId) {
         return;
     }
 
-    container.innerHTML = platform.methods
+    container.innerHTML = sortConnectionMethods(platform.methods)
         .map(method => renderMethodCard(method, platform))
         .join("");
 }

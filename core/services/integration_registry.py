@@ -1,4 +1,5 @@
-﻿from threading import RLock
+﻿
+from threading import RLock
 from typing import Any
 
 from integrations.contract import DeviceIntegration
@@ -66,7 +67,6 @@ class IntegrationRegistry:
             if integration_id not in self._active:
                 return
 
-            # Block new operations before stopping the adapter.
             self._active.remove(integration_id)
 
             stop = getattr(integration, "stop", None)
@@ -89,6 +89,46 @@ class IntegrationRegistry:
                 )
 
             return integration
+
+    def get_connection_setup_schema(
+        self,
+        integration_id: str,
+        context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Get setup fields without requiring the integration to be enabled."""
+        with self._lock:
+            integration = self._integrations.get(integration_id)
+
+            if integration is None:
+                raise LookupError(
+                    f"Integration is not registered: {integration_id}"
+                )
+
+            provider = getattr(
+                integration,
+                "get_connection_setup_schema",
+                None,
+            )
+
+            if not callable(provider):
+                return {
+                    "integration_id": integration_id,
+                    "supported": False,
+                    "methods": [],
+                }
+
+            schema = provider(context or {})
+
+            if not isinstance(schema, dict):
+                raise TypeError(
+                    "Connection setup schema must be a dictionary."
+                )
+
+            return {
+                "integration_id": integration_id,
+                "supported": True,
+                **schema,
+            }
 
     def call(
         self,

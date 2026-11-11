@@ -1,84 +1,146 @@
-﻿from typing import Any
+﻿
+from typing import Any
 
+from services.core_handler_registry import core_handler_registry
+from services.device_source_manager import device_source_manager
 from services.integration_registry import integration_registry
 
 
 class DeviceService:
-    """Dispatch device operations through the active device source."""
+    """Dispatch device operations through available device sources."""
 
     @staticmethod
-    def _get_active_source(device: dict[str, Any]) -> dict[str, Any]:
+    def _get_active_sources(
+        device: dict[str, Any],
+    ) -> list[dict[str, Any]]:
         if not device.get("enabled"):
             raise ValueError("Device is disabled.")
 
-        sources = device.get("sources", [])
+        sources = device_source_manager.get_available_sources(device)
 
-        active_sources = [
-            source
-            for source in sources
-            if source.get("enabled")
-            and source.get("connection_enabled")
-            and source.get("integration_enabled")
-        ]
+        if not sources:
+            raise ValueError("Device has no available source.")
 
-        active_sources.sort(
-            key=lambda source: (
-                source.get("priority", 100),
-                source.get("integration_name", ""),
-                source.get("connection_name", ""),
-            )
+        return sources
+
+    @staticmethod
+    def _build_source_device(
+        device: dict[str, Any],
+        source: dict[str, Any],
+    ) -> dict[str, Any]:
+        return device_source_manager.build_source_device(
+            device,
+            source,
         )
 
-        if not active_sources:
-            raise ValueError("Device has no enabled integration source.")
+    @staticmethod
+    def _call_source(
+        source: dict[str, Any],
+        method_name: str,
+        source_device: dict[str, Any],
+        *args: Any,
+    ) -> Any:
+        return device_source_manager.call(
+            source,
+            method_name,
+            source_device,
+            *args,
+        )
 
-        return active_sources[0]
-
-    def _get_integration_device(
+    def get_capabilities(
         self,
         device: dict[str, Any],
-    ) -> tuple[str, dict[str, Any]]:
-        source = self._get_active_source(device)
+    ) -> set[str]:
+        sources = self._get_active_sources(device)
+        capabilities: set[str] = set()
+        errors = []
+        successful_sources = 0
 
-        integration_device = {
-            **device,
-            "integration_id": source["integration_id"],
-            "instance_id": source["instance_id"],
-            "external_id": source["external_id"],
-            "source_name": source.get("source_name"),
-            "source": source,
-        }
+        for source in sources:
+            source_device = self._build_source_device(device, source)
 
-        return source["integration_id"], integration_device
+            try:
+                result = self._call_source(
+                    source,
+                    "get_capabilities",
+                    source_device,
+                )
+                capabilities.update(result or set())
+                successful_sources += 1
+            except Exception as error:
+                errors.append(f"{source['handler_id']}: {error}")
 
-    def get_capabilities(self, device: dict[str, Any]) -> set[str]:
-        integration_id, integration_device = self._get_integration_device(device)
+        if successful_sources:
+            return capabilities
 
-        return integration_registry.call(
-            integration_id,
-            "get_capabilities",
-            integration_device,
+        raise RuntimeError(
+            "All device sources failed: " + "; ".join(errors)
         )
 
     def get_commands(
         self,
         device: dict[str, Any],
     ) -> dict[str, dict[str, Any]]:
-        integration_id, integration_device = self._get_integration_device(device)
+        sources = self._get_active_sources(device)
+        commands: dict[str, dict[str, Any]] = {}
+        errors = []
+        successful_sources = 0
 
-        return integration_registry.call(
-            integration_id,
-            "get_commands",
-            integration_device,
+        for source in sources:
+            source_device = self._build_source_device(device, source)
+
+            try:
+                result = self._call_source(
+                    source,
+                    "get_commands",
+                    source_device,
+                )
+
+                for name, definition in (result or {}).items():
+                    commands.setdefault(name, definition)
+
+                successful_sources += 1
+            except Exception as error:
+                errors.append(f"{source['handler_id']}: {error}")
+
+        if successful_sources:
+            return commands
+
+        raise RuntimeError(
+            "All device sources failed: " + "; ".join(errors)
         )
 
-    def get_state(self, device: dict[str, Any]) -> dict[str, Any]:
-        integration_id, integration_device = self._get_integration_device(device)
+    def get_state(
+        self,
+        device: dict[str, Any],
+    ) -> dict[str, Any]:
+        sources = self._get_active_sources(device)
+        state: dict[str, Any] = {}
+        errors = []
+        successful_sources = 0
 
-        return integration_registry.call(
-            integration_id,
-            "get_state",
-            integration_device,
+        for source in sources:
+            source_device = self._build_source_device(device, source)
+
+            try:
+                result = self._call_source(
+                    source,
+                    "get_state",
+                    source_device,
+                )
+
+                for name, value in (result or {}).items():
+                    state.setdefault(name, value)
+
+                successful_sources += 1
+            except Exception as error:
+                errors.append(f"{source['handler_id']}: {error}")
+
+        if successful_sources:
+            return state
+
+        raise RuntimeError(
+            "All device sources failed: " + "; ".join(errors)
         )
 
     def execute(
@@ -87,41 +149,82 @@ class DeviceService:
         command: str,
         parameters: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        integration_id, integration_device = self._get_integration_device(device)
+        sources = self._get_active_sources(device)
+        errors = []
 
-        commands = integration_registry.call(
-            integration_id,
-            "get_commands",
-            integration_device,
-        )
+        for source in sources:
+            source_device = self._build_source_device(device, source)
 
-        if command not in commands:
-            raise ValueError(f"Unsupported command: {command}")
+            try:
+                commands = self._call_source(
+                    source,
+                    "get_commands",
+                    source_device,
+                )
 
-        return integration_registry.call(
-            integration_id,
-            "execute",
-            integration_device,
-            command,
-            parameters,
-        )
+                if command not in commands:
+                    continue
+
+                return self._call_source(
+                    source,
+                    "execute",
+                    source_device,
+                    command,
+                    parameters,
+                )
+
+            except Exception as error:
+                errors.append(f"{source['handler_id']}: {error}")
+
+        if errors:
+            raise RuntimeError(
+                "All compatible device sources failed: "
+                + "; ".join(errors)
+            )
+
+        raise ValueError(f"Unsupported command: {command}")
 
     def get_dhcp_clients(
         self,
         device: dict[str, Any],
     ) -> list[dict[str, Any]]:
-        integration_id, integration_device = self._get_integration_device(device)
+        sources = self._get_active_sources(device)
+        errors = []
+        compatible_sources = 0
 
-        try:
-            return integration_registry.call(
-                integration_id,
-                "get_dhcp_clients",
-                integration_device,
+        for source in sources:
+            handler_id = source["handler_id"]
+
+            try:
+                if source["source_type"] == "core":
+                    handler = core_handler_registry.get(handler_id)
+                else:
+                    handler = integration_registry.get(handler_id)
+
+                if not callable(getattr(handler, "get_dhcp_clients", None)):
+                    continue
+
+                compatible_sources += 1
+                source_device = self._build_source_device(device, source)
+
+                return self._call_source(
+                    source,
+                    "get_dhcp_clients",
+                    source_device,
+                )
+
+            except Exception as error:
+                errors.append(f"{handler_id}: {error}")
+
+        if compatible_sources and errors:
+            raise RuntimeError(
+                "DHCP client retrieval failed: " + "; ".join(errors)
             )
-        except AttributeError as error:
-            raise ValueError(
-                "This device does not support retrieving connected clients."
-            ) from error
+
+        if not compatible_sources:
+            raise ValueError("No available source supports DHCP clients.")
+
+        raise RuntimeError("Unable to retrieve DHCP clients.")
 
 
 device_service = DeviceService()

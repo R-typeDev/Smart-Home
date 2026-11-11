@@ -197,8 +197,7 @@ export async function init() {
         elements.deviceCount.textContent = total;
         elements.count.textContent = total;
 
-        elements.summary.textContent =
-            `${available} / ${total}`;
+        elements.summary.textContent = `${available} / ${total}`;
 
         elements.status.textContent = total > 0
             ? translate("connected")
@@ -217,13 +216,12 @@ export async function init() {
     }
 
     async function testDevice(deviceId, button) {
-        const originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = translate("testing");
+
         const resultElement = root.querySelector(
             `[data-local-result="${CSS.escape(deviceId)}"]`
         );
-
-        button.disabled = true;
-        button.textContent = translate("testing");
 
         if (resultElement) {
             resultElement.textContent = "";
@@ -239,9 +237,17 @@ export async function init() {
             lastTest = Date.now();
             elements.lastTest.textContent = formatDate(lastTest);
 
-            const powerText = result.power === true
+            if (!result.success) {
+                throw new Error(
+                    result.message || translate("offline")
+                );
+            }
+
+            const power = result.state?.power;
+
+            const powerText = power === true
                 ? translate("powerOn")
-                : result.power === false
+                : power === false
                     ? translate("powerOff")
                     : translate("unknown");
 
@@ -273,11 +279,11 @@ export async function init() {
     async function loadDevices() {
         const response = await request(API);
 
-        if (!Array.isArray(response)) {
-            throw new Error("Unexpected Tuya Local response.");
+        if (!response || !Array.isArray(response.devices)) {
+            throw new Error("Unexpected integration devices response.");
         }
 
-        devices = response;
+        devices = response.devices;
 
         renderSummary();
 
@@ -334,7 +340,6 @@ export async function init() {
     }
 
     elements.refreshButton.addEventListener("click", refreshDevices);
-
     elements.lastTest.textContent = translate("lastTestNever");
 
     await loadTranslations();
