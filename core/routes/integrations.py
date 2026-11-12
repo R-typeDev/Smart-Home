@@ -544,7 +544,10 @@ def get_integration_devices(
         except Exception as error:
             raise HTTPException(
                 status_code=502,
-                detail=f"Device discovery failed: {type(error).__name__}",
+                detail=(
+                    "Device discovery failed: "
+                    f"{type(error).__name__}: {error}"
+                ),
             ) from error
 
         if not isinstance(raw_devices, list):
