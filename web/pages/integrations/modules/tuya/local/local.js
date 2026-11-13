@@ -5,6 +5,7 @@ import {
 } from "/assets/js/i18n.js";
 
 const API = "/api/integrations/tuya_local/devices";
+const STATUS_API = "/api/integrations/tuya_local/status";
 const LANGUAGES_PATH =
     "/pages/integrations/modules/tuya/local/languages";
 
@@ -169,6 +170,7 @@ export async function init() {
 
     let devices = [];
     let lastTest = null;
+    let integrationEnabled = false;
 
     function showMessage(message, type = "info") {
         elements.message.textContent = message;
@@ -182,7 +184,8 @@ export async function init() {
     }
 
     function setLoading(loading) {
-        elements.refreshButton.disabled = loading;
+        elements.refreshButton.disabled =
+            loading || !integrationEnabled;
     }
 
     function renderSummary() {
@@ -213,6 +216,16 @@ export async function init() {
 
         elements.protocol.textContent = "Tuya LAN";
         elements.lastTest.textContent = formatDate(lastTest);
+    }
+
+    async function loadIntegrationStatus() {
+        const status = await request(STATUS_API);
+
+        integrationEnabled = status.enabled === true;
+
+        setLoading(false);
+
+        return integrationEnabled;
     }
 
     async function testDevice(deviceId, button) {
@@ -295,17 +308,33 @@ export async function init() {
     }
 
     async function refreshDevices() {
+        if (!integrationEnabled) {
+            return;
+        }
+
         clearMessage();
         setLoading(true);
 
         try {
+            await loadIntegrationStatus();
+
+            if (!integrationEnabled) {
+                devices = [];
+                renderSummary();
+                renderDevices(elements.devices, devices, testDevice);
+                showMessage(translate("integrationDisabled"), "warning");
+                return;
+            }
+
             await loadDevices();
             showMessage(translate("refreshSuccess"), "success");
+
         } catch (error) {
             showMessage(
                 `${translate("loadError")} ${error.message}`,
                 "error"
             );
+
         } finally {
             setLoading(false);
         }
@@ -315,16 +344,28 @@ export async function init() {
         setLoading(true);
 
         try {
+            await loadIntegrationStatus();
+
+            if (!integrationEnabled) {
+                devices = [];
+                renderSummary();
+                renderDevices(elements.devices, devices, testDevice);
+                showMessage(translate("integrationDisabled"), "warning");
+                return;
+            }
+
             await loadDevices();
 
             if (devices.length === 0) {
                 showMessage(translate("noSource"), "warning");
             }
+
         } catch (error) {
             showMessage(
                 `${translate("loadError")} ${error.message}`,
                 "error"
             );
+
         } finally {
             setLoading(false);
         }

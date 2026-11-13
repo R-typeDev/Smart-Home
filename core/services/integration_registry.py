@@ -90,6 +90,18 @@ class IntegrationRegistry:
 
             return integration
 
+    def get_registered(self, integration_id: str) -> DeviceIntegration:
+        """Return a registered adapter regardless of its enabled state."""
+        with self._lock:
+            integration = self._integrations.get(integration_id)
+
+            if integration is None:
+                raise LookupError(
+                    f"Integration is not registered: {integration_id}"
+                )
+
+            return integration
+
     def get_connection_setup_schema(
         self,
         integration_id: str,

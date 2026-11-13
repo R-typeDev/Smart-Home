@@ -29,15 +29,13 @@ def _get_adapter(integration_id: str):
             detail="Integration adapter is not registered.",
         )
 
-    adapter = integration_registry.get(integration_id)
-
-    if adapter is None:
+    try:
+        return integration_registry.get(integration_id)
+    except LookupError as error:
         raise HTTPException(
-            status_code=404,
-            detail="Integration adapter was not found.",
-        )
-
-    return adapter
+            status_code=409,
+            detail="Integration is disabled.",
+        ) from error
 
 
 def _method_catalog(method: dict[str, Any]) -> dict[str, Any]:
@@ -311,7 +309,7 @@ def get_integration_connections(integration_id: str):
     connections = get_integration_instances(integration_id)
 
     adapter = (
-        integration_registry.get(integration_id)
+        integration_registry.get_registered(integration_id)
         if integration_registry.is_registered(integration_id)
         else None
     )

@@ -5,6 +5,7 @@ import {
 } from "/assets/js/i18n.js";
 
 const API = "/api/integrations/tuya_cloud/connections";
+const STATUS_API = "/api/integrations/tuya_cloud/status";
 const DEVICES_API = "/api/integrations/tuya_cloud/devices";
 const REGISTER_API = "/api/devices/discovery/register";
 
@@ -84,11 +85,41 @@ function maskUserId(userId) {
     return `${userId.slice(0, 4)}••••${userId.slice(-4)}`;
 }
 
+function getDeviceId(device) {
+    return device.external_id ||
+        device.id ||
+        device.device_id ||
+        "";
+}
+
 function getDeviceName(device) {
     return device.name ||
         device.product_name ||
-        device.id ||
+        getDeviceId(device) ||
         translate("device");
+}
+
+function isDeviceOnline(device) {
+    const value =
+        device.online ??
+        device.is_online ??
+        device.metadata?.online;
+
+    if (typeof value === "boolean") {
+        return value;
+    }
+
+    if (typeof value === "number") {
+        return value === 1;
+    }
+
+    if (typeof value === "string") {
+        return ["true", "1", "online"].includes(
+            value.trim().toLowerCase()
+        );
+    }
+
+    return false;
 }
 
 function getDeviceRegistrationInfo(device) {
@@ -124,28 +155,25 @@ function renderDevices(container, devices) {
     }
 
     container.innerHTML = devices.map(device => {
-        const online = device.online === true;
+        const online = isDeviceOnline(device);
         const registration = getDeviceRegistrationInfo(device);
+        const externalId = getDeviceId(device);
 
-        let registrationHtml = "";
-
-        if (registration.cloudConnected) {
-            registrationHtml = `
+        const registrationHtml = registration.cloudConnected
+            ? `
                 <span class="cloud-device-registered">
                     ${escapeHtml(uiText("Добавлено", "Added"))}
                 </span>
-            `;
-        } else {
-            registrationHtml = `
+            `
+            : `
                 <button
                     type="button"
                     class="cloud-button cloud-button-primary cloud-device-add"
-                    data-cloud-add-device="${escapeHtml(device.id)}"
+                    data-cloud-add-device="${escapeHtml(externalId)}"
                 >
                     ${escapeHtml(uiText("Добавить", "Add"))}
                 </button>
             `;
-        }
 
         const sourceNames = registration.sources
             .map(source => source.source_name)
@@ -169,7 +197,7 @@ function renderDevices(container, devices) {
 
                     <span class="cloud-device-id">
                         ${escapeHtml(translate("deviceId"))}:
-                        ${escapeHtml(device.id || "—")}
+                        ${escapeHtml(externalId || "—")}
                     </span>
 
                     <span class="cloud-device-category">
@@ -223,7 +251,9 @@ export async function init() {
     };
 
     let connection = null;
+    let integrationEnabled = false;
     let lastSync = null;
+    let loading = false;
 
     function showMessage(message, type = "info") {
         elements.message.textContent = message;
@@ -236,9 +266,25 @@ export async function init() {
         elements.message.textContent = "";
     }
 
-    function setLoading(loading) {
-        elements.testButton.disabled = loading;
-        elements.refreshButton.disabled = loading;
+    function isAvailable() {
+        return Boolean(
+            integrationEnabled &&
+            connection &&
+            connection.enabled &&
+            connection.configured
+        );
+    }
+
+    function setLoading(value) {
+        loading = value;
+
+        const unavailable = !integrationEnabled ||
+            !connection ||
+            !connection.enabled ||
+            loading;
+
+        elements.testButton.disabled = unavailable;
+        elements.refreshButton.disabled = unavailable;
     }
 
     function renderConnection() {
@@ -250,25 +296,60 @@ export async function init() {
         const region = settings.region?.value || "";
         const userId = settings.user_id?.value || "";
 
-        elements.connectionName.textContent = connection.name || "Tuya Cloud";
-        elements.region.textContent = REGION_NAMES[region] || region || "—";
+        elements.connectionName.textContent =
+            connection.name || "Tuya Cloud";
+
+        elements.region.textContent =
+            REGION_NAMES[region] || region || "—";
+
         elements.userId.textContent = maskUserId(userId);
 
         elements.enabled.textContent = connection.enabled
             ? translate("enabled")
             : translate("disabled");
 
-        elements.status.textContent = connection.configured
-            ? translate("connected")
-            : translate("disconnected");
+        elements.status.textContent = !integrationEnabled ||
+            !connection.enabled
+            ? translate("disabled")
+            : connection.configured
+                ? translate("connected")
+                : translate("disconnected");
 
-        elements.status.className = connection.configured
-            ? "cloud-status is-connected"
-            : "cloud-status is-disconnected";
+        elements.status.className =
+            integrationEnabled &&
+            connection.enabled &&
+            connection.configured
+                ? "cloud-status is-connected"
+                : "cloud-status is-disconnected";
+
+        setLoading(loading);
+    }
+
+    function renderDisabledState() {
+        elements.deviceCount.textContent = "0";
+
+        elements.devices.innerHTML = `
+            <div class="cloud-empty">
+                ${escapeHtml(
+                    uiText(
+                        "Интеграция Tuya Cloud выключена. Включите её в настройках, чтобы загрузить устройства.",
+                        "Tuya Cloud integration is disabled. Enable it in settings to load devices."
+                    )
+                )}
+            </div>
+        `;
+
+        showMessage(
+            uiText(
+                "Интеграция Tuya Cloud выключена.",
+                "Tuya Cloud integration is disabled."
+            ),
+            "warning"
+        );
     }
 
     async function loadDevices() {
-        if (!connection) {
+        if (!isAvailable()) {
             return;
         }
 
@@ -298,7 +379,11 @@ export async function init() {
     }
 
     async function addDevice(externalId, button) {
-        if (!connection || !externalId || button.disabled) {
+        if (
+            !isAvailable() ||
+            !externalId ||
+            button.disabled
+        ) {
             return;
         }
 
@@ -338,7 +423,7 @@ export async function init() {
     }
 
     async function testConnection() {
-        if (!connection) {
+        if (!isAvailable()) {
             return;
         }
 
@@ -351,9 +436,17 @@ export async function init() {
                 { method: "POST" }
             );
 
-            if (result.connected) {
-                showMessage(translate("testSuccess"), "success");
+            if (result.success || result.connected) {
+                showMessage(
+                    result.message || translate("testSuccess"),
+                    "success"
+                );
                 await loadDevices();
+            } else {
+                showMessage(
+                    result.message || translate("connectionError"),
+                    "error"
+                );
             }
         } catch (error) {
             showMessage(
@@ -366,7 +459,7 @@ export async function init() {
     }
 
     async function refreshDevices() {
-        if (!connection) {
+        if (!isAvailable()) {
             return;
         }
 
@@ -390,10 +483,20 @@ export async function init() {
         setLoading(true);
 
         try {
+            const status = await request(STATUS_API);
+
+            integrationEnabled = Boolean(
+                status.implemented &&
+                status.enabled &&
+                status.active
+            );
+
             const connections = await request(API);
 
             if (!Array.isArray(connections) || connections.length === 0) {
                 connection = null;
+                renderConnection();
+
                 showMessage(translate("noConnection"), "warning");
 
                 elements.deviceCount.textContent = "0";
@@ -405,13 +508,27 @@ export async function init() {
                 return;
             }
 
-            connection = connections.find(item => item.configured)
-                || connections[0];
+            connection =
+                connections.find(item => item.enabled && item.configured) ||
+                connections.find(item => item.enabled) ||
+                connections[0];
 
             renderConnection();
 
+            if (!integrationEnabled || !connection.enabled) {
+                renderDisabledState();
+                return;
+            }
+
             if (!connection.configured) {
                 showMessage(translate("notConfigured"), "warning");
+
+                elements.deviceCount.textContent = "0";
+                elements.devices.innerHTML = `
+                    <div class="cloud-empty">
+                        ${escapeHtml(translate("notConfigured"))}
+                    </div>
+                `;
                 return;
             }
 
@@ -431,9 +548,11 @@ export async function init() {
             await loadTranslations();
             renderConnection();
 
-            if (connection?.configured) {
+            if (!integrationEnabled || (connection && !connection.enabled)) {
+                renderDisabledState();
+            } else if (isAvailable()) {
                 await loadDevices();
-            } else {
+            } else if (!connection) {
                 await loadPage();
             }
 
