@@ -148,6 +148,7 @@ class TuyaLocalAdapter:
                 "success": True,
                 "message": "Tuya Local device is reachable.",
                 "state": {
+                    "online": True,
                     "power": status.get("dps", {}).get("1"),
                 },
             }
@@ -228,6 +229,7 @@ class TuyaLocalAdapter:
         dps = status.get("dps", {})
 
         return {
+            "online": True,
             "power": dps.get("1"),
         }
 
