@@ -3,9 +3,10 @@ import uuid
 
 from database.connection import get_connection
 from database.seed import seed_integrations
+from database.network_schema import create_network_tables
 
 
-SCHEMA_VERSION = "4"
+SCHEMA_VERSION = "5"
 
 
 def _create_tables(connection) -> None:
@@ -371,6 +372,9 @@ def create_schema(connection) -> None:
 
     _create_device_source_tables(connection)
     _create_device_image_tables(connection)
+
+    # Create Network tables and default settings.
+    create_network_tables(connection)
 
     connection.executescript("""
         CREATE INDEX IF NOT EXISTS idx_instances_integration
