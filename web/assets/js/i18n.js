@@ -42,7 +42,9 @@ export function applyTranslations(root = document) {
     const path = location.pathname.replace(/\/+$/, "") || "/dashboard";
     let pageKey = path.replace(/^\/+/, "");
 
-    if (/^devices\/item\/[^/]+$/.test(pageKey)) {
+    if (pageKey === "devices/add") {
+        pageKey = "deviceAdd";
+    } else if (/^devices\/item\/[^/]+$/.test(pageKey)) {
         pageKey = "devices";
     } else if (/^network\/item\/[^/]+$/.test(pageKey)) {
         pageKey = "network";

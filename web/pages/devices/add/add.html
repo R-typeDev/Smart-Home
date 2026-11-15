@@ -1,0 +1,114 @@
+<section class="add-device-page" aria-labelledby="add-device-title">
+
+    <header class="page-header">
+        <h1 id="add-device-title" data-i18n="devices.add.title">
+            Add Device
+        </h1>
+
+        <p class="page-description" data-i18n="devices.add.description">
+            Add a new device to your Smart Home system.
+        </p>
+    </header>
+
+    <div class="add-device-card">
+
+        <div class="add-device-card__header">
+            <h2 data-i18n="devices.add.information">
+                Device information
+            </h2>
+
+            <p data-i18n="devices.add.informationDescription">
+                Enter the basic information about your device.
+            </p>
+        </div>
+
+        <div class="add-device-form">
+
+            <div class="add-device-field">
+                <label for="device-name" data-i18n="devices.add.name">
+                    Device name
+                </label>
+
+                <input
+                    id="device-name"
+                    type="text"
+                    data-i18n-placeholder="devices.add.namePlaceholder"
+                    placeholder="Enter device name"
+                >
+            </div>
+
+            <div class="add-device-field">
+                <label for="device-type" data-i18n="devices.add.type">
+                    Device type
+                </label>
+
+                <select id="device-type">
+                    <option value="" selected disabled data-i18n="devices.add.selectType">
+                        Select device type
+                    </option>
+                    <option value="plug" data-i18n="devices.add.types.plug">Smart Plug</option>
+                    <option value="light" data-i18n="devices.add.types.light">Light</option>
+                    <option value="sensor" data-i18n="devices.add.types.sensor">Sensor</option>
+                    <option value="alarm" data-i18n="devices.add.types.alarm">Alarm</option>
+                    <option value="camera" data-i18n="devices.add.types.camera">Camera</option>
+                    <option value="other" data-i18n="devices.add.types.other">Other</option>
+                </select>
+            </div>
+
+            <div class="add-device-field">
+                <label for="device-manufacturer" data-i18n="devices.add.manufacturer">
+                    Manufacturer
+                </label>
+
+                <input
+                    id="device-manufacturer"
+                    type="text"
+                    data-i18n-placeholder="devices.add.manufacturerPlaceholder"
+                    placeholder="Enter manufacturer"
+                >
+            </div>
+
+            <div class="add-device-field">
+                <label for="device-model" data-i18n="devices.add.model">
+                    Model
+                </label>
+
+                <input
+                    id="device-model"
+                    type="text"
+                    data-i18n-placeholder="devices.add.modelPlaceholder"
+                    placeholder="Enter model"
+                >
+            </div>
+
+            <div class="add-device-field add-device-field--full">
+                <label for="device-room" data-i18n="devices.add.room">
+                    Room
+                </label>
+
+                <select id="device-room">
+                    <option value="" selected data-i18n="devices.add.selectRoom">
+                        Select room
+                    </option>
+                </select>
+            </div>
+
+        </div>
+
+        <div class="add-device-actions">
+            <a
+                class="add-device-cancel"
+                href="/devices/"
+                data-route="/devices"
+                data-i18n="devices.add.cancel"
+            >
+                Cancel
+            </a>
+
+            <button type="button" disabled data-i18n="devices.add.submit">
+                Add device
+            </button>
+        </div>
+
+    </div>
+</section>

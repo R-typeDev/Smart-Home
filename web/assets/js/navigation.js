@@ -1,4 +1,5 @@
-﻿import { loadPage } from "./component-loader.js";
+﻿
+import { loadPage } from "./component-loader.js";
 import { applyTranslations } from "./i18n.js";
 
 const pages = {
@@ -11,9 +12,16 @@ const pages = {
 
     "/devices": {
         name: "devices",
-        html: "/pages/devices/devices.html",
-        js: "/pages/devices/devices.js",
-        css: "/pages/devices/devices.css"
+        html: "/pages/devices/list/list.html",
+        js: "/pages/devices/list/list.js",
+        css: "/pages/devices/list/list.css"
+    },
+
+    "/devices/add": {
+        name: "device-add",
+        html: "/pages/devices/add/add.html",
+        js: "/pages/devices/add/add.js",
+        css: "/pages/devices/add/add.css"
     },
 
     "/network": {
@@ -78,6 +86,13 @@ const integrationPages = {
 function resolveRoute(path) {
     const [pathname, hash = ""] = path.split("#");
 
+    if (pathname === "/devices/add" || pathname === "/devices/add/") {
+        return {
+            path: "/devices/add/",
+            page: pages["/devices/add"]
+        };
+    }
+
     if (pathname === "/integrations" && hash) {
         const integrationPage = integrationPages[`#${hash}`];
 
@@ -100,10 +115,10 @@ function resolveRoute(path) {
         return {
             path: pathname.replace(/\/$/, ""),
             page: {
-                name: "device-detail",
-                html: "/pages/devices/device.html",
-                js: "/pages/devices/device.js",
-                css: "/pages/devices/device.css"
+                name: "device-item",
+                html: "/pages/devices/item/item.html",
+                js: "/pages/devices/item/item.js",
+                css: "/pages/devices/item/item.css"
             }
         };
     }

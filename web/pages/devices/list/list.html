@@ -1,0 +1,43 @@
+﻿<section class="devices-page" aria-labelledby="devices-title">
+    <header class="page-header">
+        <div>
+            <h1 id="devices-title" data-i18n="pages.devices">Devices</h1>
+            <p class="page-description" data-i18n="devices.description">
+                All registered devices in your Smart Home system.
+            </p>
+        </div>
+
+        <a
+            class="devices-add-button"
+            href="/devices/add/"
+            data-route="/devices/add/"
+        >
+            <span aria-hidden="true">+</span>
+            <span data-i18n="devices.add.button">Add device</span>
+        </a>
+    </header>
+
+    <div
+        id="devices-message"
+        class="devices-message"
+        role="status"
+        aria-live="polite"
+        hidden
+    ></div>
+
+    <div
+        id="devices-list"
+        class="devices-list"
+        aria-label="Registered devices"
+    ></div>
+
+    <button
+        id="devices-retry"
+        class="devices-retry"
+        type="button"
+        data-i18n="devices.retry"
+        hidden
+    >
+        Retry
+    </button>
+</section>

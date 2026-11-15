@@ -38,6 +38,10 @@
             "title": "Devices",
             "description": "View and manage devices connected to your smart home."
         },
+        "deviceAdd": {
+            "title": "Add Device",
+            "description": "Add a new device to your Smart Home system."
+        },
         "network": {
             "title": "Network",
             "description": "Monitor your home network and connected network equipment."
@@ -49,6 +53,43 @@
         "settings": {
             "title": "Settings",
             "description": "Configure your Smart Home application preferences."
+        }
+    },
+    "devices": {
+        "description": "All registered devices in your Smart Home system.",
+        "loading": "Loading devices...",
+        "empty": "No devices have been added yet.",
+        "loadError": "Could not load devices. Please try again.",
+        "retry": "Retry",
+        "unnamed": "Unnamed device",
+        "active": "Active",
+        "disabled": "Disabled",
+        "add": {
+            "button": "Add device",
+            "title": "Add Device",
+            "description": "Add a new device to your Smart Home system.",
+            "information": "Device information",
+            "informationDescription": "Enter the basic information about your device.",
+            "name": "Device name",
+            "namePlaceholder": "Enter device name",
+            "type": "Device type",
+            "selectType": "Select device type",
+            "manufacturer": "Manufacturer",
+            "manufacturerPlaceholder": "Enter manufacturer",
+            "model": "Model",
+            "modelPlaceholder": "Enter model",
+            "room": "Room",
+            "selectRoom": "Select room",
+            "cancel": "Cancel",
+            "submit": "Add device",
+            "types": {
+                "plug": "Smart Plug",
+                "light": "Light",
+                "sensor": "Sensor",
+                "alarm": "Alarm",
+                "camera": "Camera",
+                "other": "Other"
+            }
         }
     },
     "integrations": {

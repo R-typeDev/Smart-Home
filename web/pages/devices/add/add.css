@@ -1,0 +1,99 @@
+.add-device-page {
+    width: 100%;
+    min-width: 0;
+}
+
+.add-device-page .page-header {
+    margin-bottom: 24px;
+}
+
+.add-device-card {
+    width: 100%;
+    max-width: 760px;
+    padding: 24px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+}
+
+.add-device-card__header {
+    margin-bottom: 24px;
+}
+
+.add-device-card__header h2 {
+    margin-bottom: 8px;
+}
+
+.add-device-card__header p {
+    margin-bottom: 0;
+    color: var(--color-muted);
+    font-size: 14px;
+}
+
+.add-device-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 20px;
+}
+
+.add-device-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.add-device-field label {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.add-device-field input,
+.add-device-field select {
+    width: 100%;
+    min-height: 42px;
+}
+
+.add-device-field--full {
+    grid-column: 1 / -1;
+}
+
+.add-device-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid var(--color-border);
+}
+
+.add-device-cancel {
+    padding: 10px 16px;
+    color: var(--color-muted);
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.add-device-cancel:hover {
+    color: var(--color-primary);
+}
+
+.add-device-actions button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+    .add-device-card {
+        padding: 18px;
+    }
+
+    .add-device-form {
+        grid-template-columns: 1fr;
+    }
+
+    .add-device-field--full {
+        grid-column: auto;
+    }
+}

@@ -1,4 +1,6 @@
-﻿const API_URL = "/api/devices";
+﻿import { t } from "../../../assets/js/i18n.js";
+
+const API_URL = "/api/devices";
 const DEVICE_URL = "/devices/item/";
 
 export function init() {
@@ -17,7 +19,7 @@ export function init() {
     async function loadDevices() {
         list.replaceChildren();
         message.hidden = false;
-        message.textContent = "Loading devices…";
+        message.textContent = t("devices.loading");
         retryButton.hidden = true;
 
         try {
@@ -34,7 +36,7 @@ export function init() {
             }
 
             if (devices.length === 0) {
-                message.textContent = "No devices have been added yet.";
+                message.textContent = t("devices.empty");
                 return;
             }
 
@@ -46,8 +48,7 @@ export function init() {
         } catch {
             list.replaceChildren();
             message.hidden = false;
-            message.textContent =
-                "Could not load devices. Please try again.";
+            message.textContent = t("devices.loadError");
             retryButton.hidden = false;
         }
     }
@@ -62,7 +63,7 @@ export function init() {
 
         const name = document.createElement("span");
         name.className = "devices-list__name";
-        name.textContent = device.name || "Unnamed device";
+        name.textContent = device.name || t("devices.unnamed");
 
         const arrow = document.createElement("span");
         arrow.className = "devices-list__arrow";
@@ -78,7 +79,9 @@ export function init() {
             ? "devices-list__status devices-list__status--enabled"
             : "devices-list__status devices-list__status--disabled";
 
-        status.textContent = enabled ? "Active" : "Disabled";
+        status.textContent = enabled
+            ? t("devices.active")
+            : t("devices.disabled");
 
         row.append(link, status);
 
