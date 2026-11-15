@@ -25,10 +25,38 @@ const pages = {
     },
 
     "/network": {
-        name: "network",
-        html: "/pages/network/network.html",
-        js: "/pages/network/network.js",
-        css: "/pages/network/network.css"
+        name: "network-overview",
+        html: "/pages/network/overview/overview.html",
+        js: "/pages/network/overview/overview.js",
+        css: "/pages/network/overview/overview.css"
+    },
+
+    "/network/topology": {
+        name: "network-topology",
+        html: "/pages/network/topology/topology.html",
+        js: "/pages/network/topology/topology.js",
+        css: "/pages/network/topology/topology.css"
+    },
+
+    "/network/devices": {
+        name: "network-devices",
+        html: "/pages/network/devices/devices.html",
+        js: "/pages/network/devices/devices.js",
+        css: "/pages/network/devices/devices.css"
+    },
+
+    "/network/connections": {
+        name: "network-connections",
+        html: "/pages/network/connections/connections.html",
+        js: "/pages/network/connections/connections.js",
+        css: "/pages/network/connections/connections.css"
+    },
+
+    "/network/diagnostics": {
+        name: "network-diagnostics",
+        html: "/pages/network/diagnostics/diagnostics.html",
+        js: "/pages/network/diagnostics/diagnostics.js",
+        css: "/pages/network/diagnostics/diagnostics.css"
     },
 
     "/integrations": {
@@ -84,14 +112,11 @@ const integrationPages = {
 };
 
 function resolveRoute(path) {
-    const [pathname, hash = ""] = path.split("#");
+    const [rawPathname, hash = ""] = path.split("#");
 
-    if (pathname === "/devices/add" || pathname === "/devices/add/") {
-        return {
-            path: "/devices/add/",
-            page: pages["/devices/add"]
-        };
-    }
+    const pathname = rawPathname.length > 1
+        ? rawPathname.replace(/\/+$/, "")
+        : rawPathname;
 
     if (pathname === "/integrations" && hash) {
         const integrationPage = integrationPages[`#${hash}`];
@@ -111,9 +136,9 @@ function resolveRoute(path) {
         };
     }
 
-    if (/^\/devices\/item\/[^/]+\/?$/.test(pathname)) {
+    if (/^\/devices\/item\/[^/]+$/.test(pathname)) {
         return {
-            path: pathname.replace(/\/$/, ""),
+            path: pathname,
             page: {
                 name: "device-item",
                 html: "/pages/devices/item/item.html",
@@ -123,14 +148,14 @@ function resolveRoute(path) {
         };
     }
 
-    if (/^\/network\/item\/[^/]+\/?$/.test(pathname)) {
+    if (/^\/network\/item\/[^/]+$/.test(pathname)) {
         return {
-            path: pathname.replace(/\/$/, ""),
+            path: pathname,
             page: {
-                name: "network-device-detail",
-                html: "/pages/network/network-device.html",
-                js: "/pages/network/network-device.js",
-                css: "/pages/network/network-device.css"
+                name: "network-item",
+                html: "/pages/network/item/item.html",
+                js: "/pages/network/item/item.js",
+                css: "/pages/network/item/item.css"
             }
         };
     }
