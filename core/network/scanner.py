@@ -1,12 +1,9 @@
 
-from concurrent.futures import (
-    FIRST_COMPLETED,
-    ThreadPoolExecutor,
-    wait,
-)
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from dataclasses import dataclass
 from ipaddress import IPv4Address, IPv4Network, ip_address, ip_network
 
+from core.network.interfaces.models import NetworkInterface
 from core.network.ping import ping
 from core.network.subnets import NetworkSubnet, get_network_subnets
 
@@ -98,6 +95,8 @@ def scan_subnet(
 def scan_network(
     max_workers: int = 32,
     max_hosts: int = 4096,
+    interfaces: list[NetworkInterface] | tuple[NetworkInterface, ...] | None = None,
+    subnets: tuple[NetworkSubnet, ...] | None = None,
 ) -> tuple[ScanResult, ...]:
     """Scan all eligible local IPv4 subnets."""
 
@@ -107,7 +106,9 @@ def scan_network(
     if max_hosts < 1:
         raise ValueError("max_hosts must be greater than zero")
 
-    subnets = get_network_subnets()
+    if subnets is None:
+        subnets = get_network_subnets(interfaces)
+
     results: dict[str, ScanResult] = {}
 
     for subnet in subnets:

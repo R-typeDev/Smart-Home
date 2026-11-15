@@ -1,12 +1,14 @@
 
 import socket
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 
 from core.network.interfaces.detector import get_network_interfaces
 from core.network.interfaces.models import (
     AddressType,
     InterfaceType,
+    NetworkInterface,
 )
 
 
@@ -25,12 +27,17 @@ class SsdpDevice:
     headers: tuple[tuple[str, str], ...] = ()
 
 
-def _get_local_ipv4_addresses() -> tuple[str, ...]:
+def _get_local_ipv4_addresses(
+    interfaces: list[NetworkInterface] | tuple[NetworkInterface, ...] | None = None,
+) -> tuple[str, ...]:
     """Get usable IPv4 addresses from active physical interfaces."""
+
+    if interfaces is None:
+        interfaces = get_network_interfaces()
 
     addresses = []
 
-    for interface in get_network_interfaces():
+    for interface in interfaces:
         if not interface.is_up:
             continue
 
@@ -170,40 +177,44 @@ def _discover_on_interface(
 
 def discover_ssdp_devices(
     timeout: float = 5.0,
+    interfaces: list[NetworkInterface] | tuple[NetworkInterface, ...] | None = None,
 ) -> tuple[SsdpDevice, ...]:
     """Discover UPnP devices through active physical interfaces."""
 
     if timeout <= 0:
         raise ValueError("timeout must be greater than zero")
 
-    local_addresses = _get_local_ipv4_addresses()
+    local_addresses = _get_local_ipv4_addresses(interfaces)
 
     if not local_addresses:
-        raise RuntimeError(
-            "No active physical network interface with IPv4 address found"
-        )
+        return ()
 
     devices = {}
 
-    for local_ip in local_addresses:
-        try:
-            results = _discover_on_interface(
-                local_ip=local_ip,
-                timeout=timeout,
-            )
-        except OSError as error:
-            raise RuntimeError(
-                f"SSDP discovery failed on interface IP {local_ip}: {error}"
-            ) from error
+    with ThreadPoolExecutor(max_workers=len(local_addresses)) as executor:
+        futures = {
+            executor.submit(
+                _discover_on_interface,
+                local_ip,
+                timeout,
+            ): local_ip
+            for local_ip in local_addresses
+        }
 
-        for device in results:
-            key = (
-                device.ip_address,
-                device.usn,
-                device.search_target,
-            )
+        for future in as_completed(futures):
+            try:
+                results = future.result()
+            except OSError:
+                continue
 
-            devices[key] = device
+            for device in results:
+                key = (
+                    device.ip_address,
+                    device.usn,
+                    device.search_target,
+                )
+
+                devices[key] = device
 
     return tuple(
         sorted(

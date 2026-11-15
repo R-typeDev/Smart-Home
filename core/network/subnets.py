@@ -63,10 +63,13 @@ def get_interface_subnets(
     return tuple(subnets)
 
 
-def get_network_subnets() -> tuple[NetworkSubnet, ...]:
-    """Get unique IPv4 subnets from all eligible interfaces."""
+def get_network_subnets(
+    interfaces: list[NetworkInterface] | tuple[NetworkInterface, ...] | None = None,
+) -> tuple[NetworkSubnet, ...]:
+    """Get unique IPv4 subnets from eligible interfaces."""
 
-    interfaces = get_network_interfaces()
+    if interfaces is None:
+        interfaces = get_network_interfaces()
 
     unique_subnets: dict[tuple[str, str], NetworkSubnet] = {}
 
