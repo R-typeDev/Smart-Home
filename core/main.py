@@ -1,11 +1,12 @@
-﻿from fastapi import FastAPI
+﻿
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from config import WEB_DIR
 from database.schema import initialize_database
 from handlers.bootstrap import register_core_handlers
 from integrations.bootstrap import register_integrations
-from routes import devices, integrations, pages
+from routes import devices, integrations, network, pages
 
 
 app = FastAPI(
@@ -28,6 +29,7 @@ def health():
 app.include_router(pages.router)
 app.include_router(devices.router)
 app.include_router(integrations.router)
+app.include_router(network.router)
 
 
 app.mount(

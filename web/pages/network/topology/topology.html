@@ -1,5 +1,114 @@
-﻿<section class="network-topology-page">
-    <header class="page-header">
-        <h1>Network topology</h1>
+﻿
+<section class="network-topology-page">
+    <header class="page-header topology-header">
+        <div>
+            <h1>Network topology</h1>
+            <p class="page-description">
+                Discovered network devices and their connections
+            </p>
+        </div>
+
+        <div class="topology-actions">
+            <span class="topology-status" id="topology-status">
+                Loading...
+            </span>
+            <button type="button" id="topology-refresh">
+                Refresh
+            </button>
+        </div>
     </header>
+
+    <div class="topology-stats" id="topology-stats">
+        <button type="button" class="topology-stat" data-node-type="interface">
+            <span class="topology-stat__label">Interfaces</span>
+            <strong id="stat-interfaces">—</strong>
+        </button>
+
+        <button type="button" class="topology-stat" data-node-type="subnet">
+            <span class="topology-stat__label">Subnets</span>
+            <strong id="stat-subnets">—</strong>
+        </button>
+
+        <button type="button" class="topology-stat" data-node-type="gateway">
+            <span class="topology-stat__label">Gateways</span>
+            <strong id="stat-gateways">—</strong>
+        </button>
+
+        <button type="button" class="topology-stat" data-node-type="device">
+            <span class="topology-stat__label">Devices</span>
+            <strong id="stat-devices">—</strong>
+        </button>
+    </div>
+
+    <section class="topology-list panel" id="topology-list" hidden>
+        <div class="topology-list__header">
+            <h2 id="topology-list-title">Items</h2>
+            <button type="button" id="topology-list-close" aria-label="Close list">
+                Close
+            </button>
+        </div>
+        <div class="topology-list__items" id="topology-list-items"></div>
+    </section>
+
+    <div class="topology-layout">
+        <section class="topology-canvas panel">
+            <div class="topology-canvas__header">
+                <div>
+                    <h2>Network map</h2>
+                    <span id="topology-updated">Not updated</span>
+                </div>
+
+                <div class="topology-tools">
+                    <input
+                        type="search"
+                        id="topology-search"
+                        placeholder="Search devices or IP..."
+                        aria-label="Search topology"
+                    >
+
+                    <button type="button" id="topology-zoom-out" title="Zoom out">
+                        −
+                    </button>
+                    <button type="button" id="topology-zoom-in" title="Zoom in">
+                        +
+                    </button>
+                    <button type="button" id="topology-fit" title="Fit to screen">
+                        Fit
+                    </button>
+                </div>
+            </div>
+
+            <div class="topology-scroll" id="topology-scroll">
+                <div class="topology-message" id="topology-message">
+                    Loading network topology...
+                </div>
+
+                <svg
+                    id="topology-svg"
+                    class="topology-svg"
+                    xmlns="http://www.w3.org/2000/svg"
+                    role="img"
+                    aria-label="Interactive network topology"
+                    hidden
+                ></svg>
+            </div>
+
+            <div class="topology-legend">
+                <span><i class="legend-dot legend-interface"></i> Interface</span>
+                <span><i class="legend-dot legend-subnet"></i> Subnet</span>
+                <span><i class="legend-dot legend-gateway"></i> Gateway</span>
+                <span><i class="legend-dot legend-device"></i> Device</span>
+            </div>
+        </section>
+
+        <aside class="topology-details panel" id="topology-details">
+            <h2>Node details</h2>
+
+            <div id="topology-details-content">
+                <p class="page-description">
+                    Select a node on the map to view its properties.
+                </p>
+            </div>
+        </aside>
+    </div>
 </section>
