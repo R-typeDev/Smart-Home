@@ -2,12 +2,14 @@
 import { t } from "../../assets/js/i18n.js";
 
 let statusTimer = null;
+let clockTimer = null;
 let activeController = null;
 let pageInstance = 0;
 let languageChangeHandler = null;
 
 const cards = [
     { id: "system", title: "System", description: "Application health" },
+    { id: "clock", title: "Time" },
     { id: "network", title: "Network", description: "Network status" },
     { id: "devices", title: "Devices", description: "Connected devices" },
     { id: "energy", title: "Energy", description: "Energy consumption" },
@@ -21,6 +23,11 @@ export function init() {
     if (statusTimer !== null) {
         clearTimeout(statusTimer);
         statusTimer = null;
+    }
+
+    if (clockTimer !== null) {
+        clearInterval(clockTimer);
+        clockTimer = null;
     }
 
     if (activeController !== null) {
@@ -58,11 +65,31 @@ export function init() {
             ? t("dashboard.systemStatus")
             : card.title;
 
-        const description = document.createElement("p");
-        description.className = "dashboard-card__description";
-        description.textContent = card.description;
+        element.append(title);
 
-        element.append(title, description);
+        if (card.id === "clock") {
+            element.classList.add("dashboard-card--clock");
+
+            const content = document.createElement("div");
+            content.className = "dashboard-clock";
+
+            const time = document.createElement("time");
+            time.className = "dashboard-clock__time";
+            time.id = "dashboard-clock-time";
+
+            const date = document.createElement("div");
+            date.className = "dashboard-clock__date";
+            date.id = "dashboard-clock-date";
+
+            content.append(time, date);
+            element.append(content);
+        } else {
+            const description = document.createElement("p");
+            description.className = "dashboard-card__description";
+            description.textContent = card.description;
+
+            element.append(description);
+        }
 
         if (card.id === "system") {
             const status = document.createElement("div");
@@ -110,6 +137,45 @@ export function init() {
     }
 
     let currentStatus = "checking";
+
+    function updateClock() {
+        const timeElement = document.getElementById(
+            "dashboard-clock-time"
+        );
+
+        const dateElement = document.getElementById(
+            "dashboard-clock-date"
+        );
+
+        if (
+            currentInstance !== pageInstance ||
+            !grid.isConnected ||
+            !timeElement ||
+            !dateElement
+        ) {
+            return;
+        }
+
+        const now = new Date();
+        const locale = document.documentElement.lang ||
+            navigator.language ||
+            "en";
+
+        timeElement.dateTime = now.toISOString();
+        timeElement.textContent = new Intl.DateTimeFormat(locale, {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hourCycle: "h23"
+        }).format(now);
+
+        dateElement.textContent = new Intl.DateTimeFormat(locale, {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        }).format(now);
+    }
 
     function updateStatus(status) {
         currentStatus = status;
@@ -163,6 +229,7 @@ export function init() {
         }
 
         updateStatus(currentStatus);
+        updateClock();
     };
 
     window.addEventListener(
@@ -251,6 +318,9 @@ export function init() {
             }
         }
     }
+
+    updateClock();
+    clockTimer = setInterval(updateClock, 1000);
 
     updateStatus("checking");
     checkStatus();
