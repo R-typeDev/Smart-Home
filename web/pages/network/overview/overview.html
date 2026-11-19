@@ -1,5 +1,89 @@
 ﻿<section class="network-overview-page">
     <header class="page-header">
-        <h1>Network overview</h1>
+        <h1>Network Overview</h1>
+        <p class="network-overview__subtitle">
+            Monitor and manage your home network.
+        </p>
     </header>
+
+    <section class="network-overview__sections">
+
+        <a class="network-section-card"
+           href="/network/topology"
+           data-route="/network/topology">
+            <div class="network-section-card__icon">
+                <svg viewBox="0 0 26 26" fill="none"
+                     stroke="currentColor" stroke-width="1.8"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M13 5.5V9M5.5 13H9M17 13h3.5M13 17v3.5"/>
+                    <rect x="9" y="9" width="8" height="8" rx="1.2"/>
+                    <rect x="10.5" y="0.5" width="5" height="5" rx="0.7"/>
+                    <rect x="0.5" y="10.5" width="5" height="5" rx="0.7"/>
+                    <rect x="20.5" y="10.5" width="5" height="5" rx="0.7"/>
+                    <rect x="10.5" y="20.5" width="5" height="5" rx="0.7"/>
+                </svg>
+            </div>
+            <div class="network-section-card__content">
+                <h2>Topology</h2>
+                <p>Explore the structure of your network and visualize device connections.</p>
+            </div>
+            <span class="network-section-card__arrow">→</span>
+        </a>
+
+        <a class="network-section-card"
+           href="/network/devices"
+           data-route="/network/devices">
+            <div class="network-section-card__icon">
+                <svg viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="1.8"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="13" rx="2"/>
+                    <path d="M8 21h8M12 16v5M8 8h8M8 11h5"/>
+                </svg>
+            </div>
+            <div class="network-section-card__content">
+                <h2>Devices</h2>
+                <p>View and manage devices discovered on your local network.</p>
+            </div>
+            <span class="network-section-card__arrow">→</span>
+        </a>
+
+        <a class="network-section-card"
+           href="/network/connections"
+           data-route="/network/connections">
+            <div class="network-section-card__icon">
+                <svg viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="1.8"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="6" cy="12" r="3"/>
+                    <circle cx="18" cy="6" r="3"/>
+                    <circle cx="18" cy="18" r="3"/>
+                    <path d="m9 11 6-4M9 13l6 4"/>
+                </svg>
+            </div>
+            <div class="network-section-card__content">
+                <h2>Connections</h2>
+                <p>Explore wired and wireless links between network devices.</p>
+            </div>
+            <span class="network-section-card__arrow">→</span>
+        </a>
+
+        <a class="network-section-card"
+           href="/network/diagnostics"
+           data-route="/network/diagnostics">
+            <div class="network-section-card__icon">
+                <svg viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="1.8"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 12h4l3-8 4 16 3-8h4"/>
+                </svg>
+            </div>
+            <div class="network-section-card__content">
+                <h2>Diagnostics</h2>
+                <p>Check network availability and troubleshoot connection issues.</p>
+            </div>
+            <span class="network-section-card__arrow">→</span>
+        </a>
+
+    </section>
 </section>
