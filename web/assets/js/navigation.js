@@ -71,6 +71,13 @@ const pages = {
         html: "/pages/settings/settings.html",
         js: "/pages/settings/settings.js",
         css: "/pages/settings/settings.css"
+    },
+
+    "/settings/general": {
+        name: "settings-general",
+        html: "/pages/settings/general/general.html",
+        js: "/pages/settings/general/general.js",
+        css: "/pages/settings/general/general.css"
     }
 };
 

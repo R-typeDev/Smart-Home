@@ -37,6 +37,11 @@ export function applyTranslations(root = document) {
         element.placeholder = t(element.dataset.i18nPlaceholder);
     });
 
+    // Keep language selectors synchronized.
+    document.querySelectorAll("#language-select").forEach((selector) => {
+        selector.value = currentLanguage;
+    });
+
     document.documentElement.lang = currentLanguage;
 
     const path = location.pathname.replace(/\/+$/, "") || "/dashboard";
@@ -82,7 +87,7 @@ export async function setLanguage(language) {
         : "en";
 
     const response = await fetch(
-        `/locales/${selectedLanguage}.json`
+        `/languages/${selectedLanguage}.json`
     );
 
     if (!response.ok) {
@@ -99,11 +104,9 @@ export async function setLanguage(language) {
         selectedLanguage
     );
 
-    const selector = document.querySelector("#language-select");
-
-    if (selector) {
+    document.querySelectorAll("#language-select").forEach((selector) => {
         selector.value = selectedLanguage;
-    }
+    });
 
     applyTranslations();
 
@@ -119,21 +122,31 @@ export async function initI18n() {
         "smart-home-language"
     );
 
-    const initialLanguage = savedLanguage === "ru" ? "ru" : "en";
-    const selector = document.querySelector("#language-select");
+    const browserLanguage = navigator.language
+        ?.toLowerCase()
+        .startsWith("ru")
+        ? "ru"
+        : "en";
 
-    if (selector) {
-        selector.value = initialLanguage;
+    const initialLanguage = savedLanguage
+        ? (["en", "ru"].includes(savedLanguage) ? savedLanguage : "en")
+        : browserLanguage;
 
-        selector.addEventListener("change", async () => {
-            try {
-                await setLanguage(selector.value);
-            } catch (error) {
-                console.error("Language change failed:", error);
-                selector.value = currentLanguage;
-            }
-        });
-    }
+    // Delegated listener works with dynamically loaded pages.
+    document.addEventListener("change", async (event) => {
+        if (!event.target.matches("#language-select")) {
+            return;
+        }
+
+        const selector = event.target;
+
+        try {
+            await setLanguage(selector.value);
+        } catch (error) {
+            console.error("Language change failed:", error);
+            selector.value = currentLanguage;
+        }
+    });
 
     try {
         await setLanguage(initialLanguage);

@@ -1,6 +1,7 @@
 ﻿
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 from config import WEB_DIR
 from database.schema import initialize_database
@@ -26,12 +27,14 @@ def health():
     return {"status": "ok"}
 
 
+# API routes.
 app.include_router(pages.router)
 app.include_router(devices.router)
 app.include_router(integrations.router)
 app.include_router(network.router)
 
 
+# Static files.
 app.mount(
     "/assets",
     StaticFiles(directory=WEB_DIR / "assets"),
@@ -39,9 +42,9 @@ app.mount(
 )
 
 app.mount(
-    "/locales",
-    StaticFiles(directory=WEB_DIR / "locales"),
-    name="locales",
+    "/languages",
+    StaticFiles(directory=WEB_DIR / "languages"),
+    name="languages",
 )
 
 app.mount(
@@ -61,3 +64,14 @@ app.mount(
     StaticFiles(directory=WEB_DIR / "pages"),
     name="pages-static",
 )
+
+
+# SPA fallback.
+@app.get("/")
+@app.get("/{full_path:path}")
+def serve_spa(full_path: str = ""):
+    # Do not return index.html for missing files.
+    if full_path and "." in full_path.split("/")[-1]:
+        raise HTTPException(status_code=404, detail="Not Found")
+
+    return FileResponse(WEB_DIR / "index.html")
