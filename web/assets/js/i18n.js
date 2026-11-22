@@ -49,6 +49,8 @@ export function applyTranslations(root = document) {
 
     if (pageKey === "devices/add") {
         pageKey = "deviceAdd";
+    } else if (pageKey === "settings/about") {
+        pageKey = "about";
     } else if (/^devices\/item\/[^/]+$/.test(pageKey)) {
         pageKey = "devices";
     } else if (/^network\/item\/[^/]+$/.test(pageKey)) {

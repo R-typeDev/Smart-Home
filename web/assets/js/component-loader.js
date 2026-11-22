@@ -1,9 +1,19 @@
-﻿import { applyTranslations } from "./i18n.js";
+﻿
+import { applyTranslations } from "./i18n.js";
+
+let activePageModule = null;
 
 export async function loadPage(page) {
     const content = document.querySelector("#app-content");
 
     try {
+        // Stop the previous page before loading another one.
+        if (activePageModule && typeof activePageModule.destroy === "function") {
+            await activePageModule.destroy();
+        }
+
+        activePageModule = null;
+
         const response = await fetch(page.html);
 
         if (!response.ok) {
@@ -27,6 +37,8 @@ export async function loadPage(page) {
 
         const pageModule = await import(page.js);
 
+        activePageModule = pageModule;
+
         if (typeof pageModule.init === "function") {
             await pageModule.init();
         }
@@ -35,6 +47,16 @@ export async function loadPage(page) {
         content.focus();
     } catch (error) {
         console.error("Page loading failed:", error);
+
+        if (activePageModule && typeof activePageModule.destroy === "function") {
+            try {
+                await activePageModule.destroy();
+            } catch (destroyError) {
+                console.error("Page cleanup failed:", destroyError);
+            }
+        }
+
+        activePageModule = null;
 
         content.textContent =
             "The page could not be loaded. Check the server and try again.";

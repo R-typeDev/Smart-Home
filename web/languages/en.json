@@ -53,6 +53,10 @@
         "settings": {
             "title": "Settings",
             "description": "Configure your Smart Home application preferences."
+        },
+        "about": {
+            "title": "About",
+            "description": "Information, version and system status of the Smart Home application."
         }
     },
     "devices": {
@@ -149,5 +153,16 @@
         "cloudDevices": "Discovered devices",
         "cloudDevicesDescription": "Devices available through your Tuya Cloud account.",
         "cloudLoading": "Loading devices..."
+    },
+    "about": {
+        "title": "About",
+        "description": "Information about your Smart Home application.",
+        "subtitle": "Home Automation System",
+        "application": "Application",
+        "version": "Version",
+        "platform": "Platform",
+        "platformValue": "Home Automation",
+        "license": "License",
+        "licenseValue": "To be determined"
     }
 }

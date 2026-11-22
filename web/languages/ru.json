@@ -53,6 +53,10 @@
         "settings": {
             "title": "Настройки",
             "description": "Настройка параметров приложения умного дома."
+        },
+        "about": {
+            "title": "О системе",
+            "description": "Информация, версия и состояние системы Smart Home."
         }
     },
     "devices": {
@@ -149,5 +153,16 @@
         "cloudDevices": "Обнаруженные устройства",
         "cloudDevicesDescription": "Устройства, доступные через аккаунт Tuya Cloud.",
         "cloudLoading": "Загрузка устройств..."
+    },
+    "about": {
+        "title": "О системе",
+        "description": "Информация о приложении Smart Home.",
+        "subtitle": "Система автоматизации дома",
+        "application": "Приложение",
+        "version": "Версия",
+        "platform": "Платформа",
+        "platformValue": "Автоматизация дома",
+        "license": "Лицензия",
+        "licenseValue": "Будет определена"
     }
 }
