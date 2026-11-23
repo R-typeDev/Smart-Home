@@ -1,5 +1,4 @@
-﻿
-let translations = {};
+﻿let translations = {};
 let currentLanguage = "en";
 
 export function getLanguage() {
@@ -51,6 +50,8 @@ export function applyTranslations(root = document) {
         pageKey = "deviceAdd";
     } else if (pageKey === "settings/about") {
         pageKey = "about";
+    } else if (pageKey === "settings/system") {
+        pageKey = "system";
     } else if (/^devices\/item\/[^/]+$/.test(pageKey)) {
         pageKey = "devices";
     } else if (/^network\/item\/[^/]+$/.test(pageKey)) {

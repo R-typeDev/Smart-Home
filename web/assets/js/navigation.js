@@ -1,5 +1,4 @@
-﻿
-import { loadPage } from "./component-loader.js";
+﻿import { loadPage } from "./component-loader.js";
 import { applyTranslations } from "./i18n.js";
 
 const pages = {
@@ -78,6 +77,13 @@ const pages = {
         html: "/pages/settings/general/general.html",
         js: "/pages/settings/general/general.js",
         css: "/pages/settings/general/general.css"
+    },
+
+    "/settings/system": {
+        name: "settings-system",
+        html: "/pages/settings/system/system.html",
+        js: "/pages/settings/system/system.js",
+        css: "/pages/settings/system/system.css"
     },
 
     "/settings/about": {

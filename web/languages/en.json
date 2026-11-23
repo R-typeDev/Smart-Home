@@ -54,6 +54,10 @@
             "title": "Settings",
             "description": "Configure your Smart Home application preferences."
         },
+        "system": {
+            "title": "System",
+            "description": "Monitor system status, services and maintenance."
+        },
         "about": {
             "title": "About",
             "description": "Information, version and system status of the Smart Home application."
@@ -153,6 +157,22 @@
         "cloudDevices": "Discovered devices",
         "cloudDevicesDescription": "Devices available through your Tuya Cloud account.",
         "cloudLoading": "Loading devices..."
+    },
+    "system": {
+        "title": "System",
+        "description": "System status, services and maintenance.",
+        "status": {
+            "title": "System Status",
+            "description": "Overview of the system's current state and health."
+        },
+        "services": {
+            "title": "Services",
+            "description": "View system services and their operation."
+        },
+        "maintenance": {
+            "title": "Maintenance",
+            "description": "System maintenance and diagnostic tools."
+        }
     },
     "about": {
         "title": "About",
