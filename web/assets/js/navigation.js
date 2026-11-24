@@ -87,6 +87,13 @@ const pages = {
         css: "/pages/settings/dashboard/dashboard-settings.css"
     },
 
+    "/settings/appearance": {
+        name: "settings-appearance",
+        html: "/pages/settings/appearance/appearance.html",
+        js: "/pages/settings/appearance/appearance.js",
+        css: "/pages/settings/appearance/appearance.css"
+    },
+
     "/settings/system": {
         name: "settings-system",
         html: "/pages/settings/system/system.html",
