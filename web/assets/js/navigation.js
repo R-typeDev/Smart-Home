@@ -80,6 +80,13 @@ const pages = {
         css: "/pages/settings/general/general.css"
     },
 
+    "/settings/dashboard": {
+        name: "settings-dashboard",
+        html: "/pages/settings/dashboard/dashboard-settings.html",
+        js: "/pages/settings/dashboard/dashboard-settings.js",
+        css: "/pages/settings/dashboard/dashboard-settings.css"
+    },
+
     "/settings/system": {
         name: "settings-system",
         html: "/pages/settings/system/system.html",
