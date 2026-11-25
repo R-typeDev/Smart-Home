@@ -1,0 +1,199 @@
+
+<section class="event-logs-page">
+    <header class="page-header">
+        <h1>Event Logs</h1>
+        <p class="page-description">
+            View events and changes detected across your Smart Home environment.
+        </p>
+    </header>
+
+    <section class="event-logs-summary" aria-label="Event log summary">
+        <article class="event-logs-summary-card">
+            <div class="event-logs-summary-card__icon event-logs-summary-card__icon--total">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1.8"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M8 6h13M8 12h13M8 18h13"/>
+                    <path d="M3 6h.01M3 12h.01M3 18h.01"/>
+                </svg>
+            </div>
+            <div class="event-logs-summary-card__content">
+                <span>Total Events</span>
+                <strong>256</strong>
+                <small>Recorded events</small>
+            </div>
+        </article>
+
+        <article class="event-logs-summary-card">
+            <div class="event-logs-summary-card__icon event-logs-summary-card__icon--motion">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1.8"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 12 20 4"/>
+                    <path d="M4.93 19.07a10 10 0 1 1 14.14 0"/>
+                    <path d="M7.76 16.24a6 6 0 1 1 8.48 0"/>
+                    <circle cx="12" cy="12" r="1.2"/>
+                </svg>
+            </div>
+            <div class="event-logs-summary-card__content">
+                <span>Motion Events</span>
+                <strong>38</strong>
+                <small>Detected movements</small>
+            </div>
+        </article>
+
+        <article class="event-logs-summary-card">
+            <div class="event-logs-summary-card__icon event-logs-summary-card__icon--devices">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1.8"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4" y="3" width="16" height="18" rx="2"/>
+                    <path d="M9 7h6M9 17h6"/>
+                </svg>
+            </div>
+            <div class="event-logs-summary-card__content">
+                <span>Device Events</span>
+                <strong>74</strong>
+                <small>Device state changes</small>
+            </div>
+        </article>
+    </section>
+
+    <section class="event-logs-panel">
+        <div class="event-logs-panel__header">
+            <div>
+                <h2>Event Log</h2>
+                <p>Detected events and changes in your home.</p>
+            </div>
+
+            <div class="event-logs-panel__actions">
+                <button type="button" class="event-logs-button event-logs-button--secondary">
+                    Export
+                </button>
+                <button type="button" class="event-logs-button event-logs-button--primary">
+                    Refresh
+                </button>
+            </div>
+        </div>
+
+        <div class="event-logs-toolbar">
+            <div class="event-logs-search">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1.8"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="7"/>
+                    <path d="m20 20-4-4"/>
+                </svg>
+                <input type="search" placeholder="Search events..." aria-label="Search events">
+            </div>
+
+            <select aria-label="Filter by event type">
+                <option value="">All Event Types</option>
+                <option value="motion">Motion</option>
+                <option value="door">Door / Window</option>
+                <option value="lighting">Lighting</option>
+                <option value="temperature">Temperature</option>
+                <option value="device">Device Status</option>
+            </select>
+
+            <select aria-label="Filter by room">
+                <option value="">All Rooms</option>
+                <option value="living-room">Living Room</option>
+                <option value="kitchen">Kitchen</option>
+                <option value="bedroom">Bedroom</option>
+                <option value="hallway">Hallway</option>
+            </select>
+
+            <select aria-label="Filter by time period">
+                <option value="today">Today</option>
+                <option value="24h">Last 24 hours</option>
+                <option value="7d">Last 7 days</option>
+                <option value="30d">Last 30 days</option>
+                <option value="all">All Time</option>
+            </select>
+        </div>
+
+        <div class="event-logs-table-wrapper">
+            <table class="event-logs-table">
+                <thead>
+                    <tr>
+                        <th>Date &amp; Time</th>
+                        <th>Event</th>
+                        <th>Device</th>
+                        <th>Room</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                        <td>20:38:42</td>
+                        <td>
+                            <span class="event-logs-type event-logs-type--motion">
+                                Motion Detected
+                            </span>
+                        </td>
+                        <td>Motion Sensor</td>
+                        <td>Living Room</td>
+                        <td>Movement detected</td>
+                    </tr>
+
+                    <tr>
+                        <td>20:32:15</td>
+                        <td>
+                            <span class="event-logs-type event-logs-type--door">
+                                Door Opened
+                            </span>
+                        </td>
+                        <td>Door Sensor</td>
+                        <td>Hallway</td>
+                        <td>Contact state changed</td>
+                    </tr>
+
+                    <tr>
+                        <td>20:27:51</td>
+                        <td>
+                            <span class="event-logs-type event-logs-type--lighting">
+                                Light Turned On
+                            </span>
+                        </td>
+                        <td>Smart Bulb</td>
+                        <td>Kitchen</td>
+                        <td>Light state changed to ON</td>
+                    </tr>
+
+                    <tr>
+                        <td>20:21:08</td>
+                        <td>
+                            <span class="event-logs-type event-logs-type--temperature">
+                                Temperature Changed
+                            </span>
+                        </td>
+                        <td>Temperature Sensor</td>
+                        <td>Bedroom</td>
+                        <td>Temperature: 22.4 °C</td>
+                    </tr>
+
+                    <tr>
+                        <td>20:14:36</td>
+                        <td>
+                            <span class="event-logs-type event-logs-type--device">
+                                Device Offline
+                            </span>
+                        </td>
+                        <td>Smart Plug</td>
+                        <td>Kitchen</td>
+                        <td>Device became unavailable</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="event-logs-panel__footer">
+            <span>Showing 5 of 256 events</span>
+            <button type="button" class="event-logs-load-more">
+                Load More
+            </button>
+        </div>
+    </section>
+</section>

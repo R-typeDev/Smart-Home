@@ -1,0 +1,189 @@
+
+<section class="device-logs-page">
+    <header class="page-header">
+        <h1>Device Logs</h1>
+        <p class="page-description">
+            Monitor device state changes, sensor readings, performance metrics, and availability.
+        </p>
+    </header>
+
+    <section class="device-logs-summary" aria-label="Device log summary">
+        <article class="device-logs-summary-card">
+            <div class="device-logs-summary-card__icon device-logs-summary-card__icon--total">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1.8"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M8 6h13M8 12h13M8 18h13"/>
+                    <path d="M3 6h.01M3 12h.01M3 18h.01"/>
+                </svg>
+            </div>
+            <div class="device-logs-summary-card__content">
+                <span>Total Records</span>
+                <strong>1,248</strong>
+                <small>Recorded device data</small>
+            </div>
+        </article>
+
+        <article class="device-logs-summary-card">
+            <div class="device-logs-summary-card__icon device-logs-summary-card__icon--states">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1.8"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 12h4l3-8 4 16 3-8h2"/>
+                </svg>
+            </div>
+            <div class="device-logs-summary-card__content">
+                <span>State Changes</span>
+                <strong>186</strong>
+                <small>Device state updates</small>
+            </div>
+        </article>
+
+        <article class="device-logs-summary-card">
+            <div class="device-logs-summary-card__icon device-logs-summary-card__icon--readings">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1.8"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 3v18h18"/>
+                    <path d="m19 9-5 5-4-4-5 5"/>
+                </svg>
+            </div>
+            <div class="device-logs-summary-card__content">
+                <span>Sensor Readings</span>
+                <strong>842</strong>
+                <small>Recorded measurements</small>
+            </div>
+        </article>
+    </section>
+
+    <section class="device-logs-panel">
+        <div class="device-logs-panel__header">
+            <div>
+                <h2>Device Log</h2>
+                <p>Device states, measurements, and availability history.</p>
+            </div>
+
+            <div class="device-logs-panel__actions">
+                <button type="button" class="device-logs-button device-logs-button--secondary">
+                    Export
+                </button>
+                <button type="button" class="device-logs-button device-logs-button--primary">
+                    Refresh
+                </button>
+            </div>
+        </div>
+
+        <div class="device-logs-toolbar">
+            <div class="device-logs-search">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1.8"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="7"/>
+                    <path d="m20 20-4-4"/>
+                </svg>
+                <input type="search" placeholder="Search devices..." aria-label="Search devices">
+            </div>
+
+            <select aria-label="Filter by device">
+                <option value="">All Devices</option>
+                <option value="smart-plug">Smart Plug</option>
+                <option value="smart-bulb">Smart Bulb</option>
+                <option value="temperature-sensor">Temperature Sensor</option>
+                <option value="humidity-sensor">Humidity Sensor</option>
+            </select>
+
+            <select aria-label="Filter by record type">
+                <option value="">All Record Types</option>
+                <option value="state">State Changes</option>
+                <option value="reading">Sensor Readings</option>
+                <option value="metric">Device Metrics</option>
+                <option value="availability">Availability</option>
+            </select>
+
+            <select aria-label="Filter by time period">
+                <option value="today">Today</option>
+                <option value="24h">Last 24 hours</option>
+                <option value="7d">Last 7 days</option>
+                <option value="30d">Last 30 days</option>
+                <option value="all">All Time</option>
+            </select>
+        </div>
+
+        <div class="device-logs-table-wrapper">
+            <table class="device-logs-table">
+                <thead>
+                    <tr>
+                        <th>Date &amp; Time</th>
+                        <th>Device</th>
+                        <th>Room</th>
+                        <th>Parameter</th>
+                        <th>Previous Value</th>
+                        <th>New Value</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                        <td>20:38:42</td>
+                        <td>Smart Plug</td>
+                        <td>Kitchen</td>
+                        <td>Power State</td>
+                        <td>
+                            <span class="device-logs-value device-logs-value--off">OFF</span>
+                        </td>
+                        <td>
+                            <span class="device-logs-value device-logs-value--on">ON</span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>20:34:18</td>
+                        <td>Temperature Sensor</td>
+                        <td>Bedroom</td>
+                        <td>Temperature</td>
+                        <td>21.8 °C</td>
+                        <td>22.4 °C</td>
+                    </tr>
+
+                    <tr>
+                        <td>20:29:51</td>
+                        <td>Humidity Sensor</td>
+                        <td>Living Room</td>
+                        <td>Humidity</td>
+                        <td>45%</td>
+                        <td>48%</td>
+                    </tr>
+
+                    <tr>
+                        <td>20:24:07</td>
+                        <td>Smart Bulb</td>
+                        <td>Hallway</td>
+                        <td>Availability</td>
+                        <td>
+                            <span class="device-logs-value device-logs-value--online">Online</span>
+                        </td>
+                        <td>
+                            <span class="device-logs-value device-logs-value--offline">Offline</span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>20:18:33</td>
+                        <td>Smart Plug</td>
+                        <td>Kitchen</td>
+                        <td>Power</td>
+                        <td>12 W</td>
+                        <td>85 W</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="device-logs-panel__footer">
+            <span>Showing 5 of 1,248 records</span>
+            <button type="button" class="device-logs-load-more">
+                Load More
+            </button>
+        </div>
+    </section>
+</section>

@@ -101,6 +101,34 @@ const pages = {
         css: "/pages/settings/system/system.css"
     },
 
+    "/settings/system/logs": {
+        name: "system-logs",
+        html: "/pages/settings/system/system-logs/system-logs.html",
+        js: "/pages/settings/system/system-logs/system-logs.js",
+        css: "/pages/settings/system/system-logs/system-logs.css"
+    },
+
+    "/settings/system/event-logs": {
+        name: "event-logs",
+        html: "/pages/settings/system/event-logs/event-logs.html",
+        js: "/pages/settings/system/event-logs/event-logs.js",
+        css: "/pages/settings/system/event-logs/event-logs.css"
+    },
+
+    "/settings/system/activity-logs": {
+        name: "activity-logs",
+        html: "/pages/settings/system/activity-logs/activity-logs.html",
+        js: "/pages/settings/system/activity-logs/activity-logs.js",
+        css: "/pages/settings/system/activity-logs/activity-logs.css"
+    },
+
+    "/settings/system/device-logs": {
+        name: "device-logs",
+        html: "/pages/settings/system/device-logs/device-logs.html",
+        js: "/pages/settings/system/device-logs/device-logs.js",
+        css: "/pages/settings/system/device-logs/device-logs.css"
+    },
+
     "/settings/storage": {
         name: "settings-storage",
         html: "/pages/settings/storage/storage.html",

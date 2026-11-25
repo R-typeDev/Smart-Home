@@ -1,3 +1,4 @@
+
 .system-page {
     width: 100%;
 }
@@ -18,6 +19,27 @@
     background: #ffffff;
     border: 1px solid #e7ebef;
     border-radius: 12px;
+}
+
+.system-card[href] {
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+.system-card[href]:hover {
+    border-color: #cbd8d2;
+    box-shadow: 0 4px 12px rgba(38, 50, 56, 0.06);
+    transform: translateY(-1px);
+}
+
+.system-card[href]:focus-visible {
+    outline: 2px solid #168A68;
+    outline-offset: 3px;
 }
 
 .system-card__icon {

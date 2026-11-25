@@ -1,0 +1,341 @@
+
+.activity-logs-page {
+    width: 100%;
+}
+
+.activity-logs-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+    margin-top: 28px;
+}
+
+.activity-logs-summary-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 112px;
+    padding: 20px;
+    background: #ffffff;
+    border: 1px solid #e7ebef;
+    border-radius: 12px;
+}
+
+.activity-logs-summary-card__icon {
+    display: flex;
+    flex: 0 0 46px;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 10px;
+}
+
+.activity-logs-summary-card__icon--total {
+    color: #168A68;
+    background: #eaf5f1;
+}
+
+.activity-logs-summary-card__icon--users {
+    color: #3975c6;
+    background: #edf3fc;
+}
+
+.activity-logs-summary-card__icon--automation {
+    color: #8b65bd;
+    background: #f3edfa;
+}
+
+.activity-logs-summary-card__content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 3px;
+}
+
+.activity-logs-summary-card__content span {
+    color: #718096;
+    font-size: 13px;
+}
+
+.activity-logs-summary-card__content strong {
+    color: #263238;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.activity-logs-summary-card__content small {
+    color: #98a2b3;
+    font-size: 12px;
+}
+
+.activity-logs-panel {
+    margin-top: 28px;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #e7ebef;
+    border-radius: 12px;
+}
+
+.activity-logs-panel__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 22px;
+    border-bottom: 1px solid #edf0f3;
+}
+
+.activity-logs-panel__header h2 {
+    margin: 0 0 6px;
+    color: #263238;
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.activity-logs-panel__header p {
+    margin: 0;
+    color: #718096;
+    font-size: 13px;
+}
+
+.activity-logs-panel__actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.activity-logs-button {
+    min-height: 36px;
+    padding: 0 14px;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.activity-logs-button--secondary {
+    color: #475467;
+    background: #ffffff;
+    border-color: #dfe5ec;
+}
+
+.activity-logs-button--secondary:hover {
+    background: #f8fafb;
+    border-color: #cbd5df;
+}
+
+.activity-logs-button--primary {
+    color: #ffffff;
+    background: #168A68;
+}
+
+.activity-logs-button--primary:hover {
+    background: #117555;
+}
+
+.activity-logs-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 22px;
+    border-bottom: 1px solid #edf0f3;
+}
+
+.activity-logs-search {
+    display: flex;
+    flex: 1 1 220px;
+    align-items: center;
+    gap: 9px;
+    min-width: 180px;
+    height: 38px;
+    padding: 0 11px;
+    color: #98a2b3;
+    background: #ffffff;
+    border: 1px solid #dfe5ec;
+    border-radius: 7px;
+}
+
+.activity-logs-search input {
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    color: #344054;
+    background: transparent;
+    border: none;
+    outline: none;
+    font: inherit;
+    font-size: 13px;
+}
+
+.activity-logs-search input::placeholder {
+    color: #98a2b3;
+}
+
+.activity-logs-toolbar select {
+    height: 38px;
+    min-width: 130px;
+    padding: 0 30px 0 11px;
+    color: #475467;
+    background: #ffffff;
+    border: 1px solid #dfe5ec;
+    border-radius: 7px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.activity-logs-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.activity-logs-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.activity-logs-table th {
+    padding: 13px 18px;
+    color: #718096;
+    background: #f8fafb;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.activity-logs-table td {
+    padding: 15px 18px;
+    color: #475467;
+    border-top: 1px solid #edf0f3;
+    font-size: 13px;
+}
+
+.activity-logs-table tbody tr {
+    transition: background 0.15s ease;
+}
+
+.activity-logs-table tbody tr:hover {
+    background: #fafcfb;
+}
+
+.activity-logs-initiator,
+.activity-logs-result {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 9px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.activity-logs-initiator--user {
+    color: #3975c6;
+    background: #edf3fc;
+}
+
+.activity-logs-initiator--automation {
+    color: #8b65bd;
+    background: #f3edfa;
+}
+
+.activity-logs-initiator--voice {
+    color: #168A68;
+    background: #eaf5f1;
+}
+
+.activity-logs-initiator--system {
+    color: #64748b;
+    background: #f0f2f5;
+}
+
+.activity-logs-result--success {
+    color: #168A68;
+    background: #eaf5f1;
+}
+
+.activity-logs-result--failed {
+    color: #c24141;
+    background: #fdecec;
+}
+
+.activity-logs-panel__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 22px;
+    border-top: 1px solid #edf0f3;
+}
+
+.activity-logs-panel__footer span {
+    color: #718096;
+    font-size: 12px;
+}
+
+.activity-logs-load-more {
+    padding: 7px 12px;
+    color: #475467;
+    background: #ffffff;
+    border: 1px solid #dfe5ec;
+    border-radius: 7px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.activity-logs-load-more:hover {
+    background: #f8fafb;
+    border-color: #cbd5df;
+}
+
+@media (max-width: 1000px) {
+    .activity-logs-toolbar {
+        flex-wrap: wrap;
+    }
+
+    .activity-logs-search {
+        flex-basis: 100%;
+    }
+
+    .activity-logs-toolbar select {
+        flex: 1 1 140px;
+    }
+}
+
+@media (max-width: 700px) {
+    .activity-logs-summary {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .activity-logs-panel__header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .activity-logs-panel__actions {
+        width: 100%;
+    }
+
+    .activity-logs-panel__actions button {
+        flex: 1;
+    }
+
+    .activity-logs-toolbar {
+        padding: 14px;
+    }
+
+    .activity-logs-panel__header,
+    .activity-logs-panel__footer {
+        padding: 18px;
+    }
+
+    .activity-logs-panel__footer {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

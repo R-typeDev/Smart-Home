@@ -1,3 +1,4 @@
+
 <section class="system-page">
 
     <header class="page-header">
@@ -9,7 +10,7 @@
 
     <section class="system-grid" aria-label="System sections">
 
-        <!-- System Status: activity -->
+        <!-- System Status -->
         <article class="system-card">
             <div class="system-card__icon" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg"
@@ -30,7 +31,7 @@
             </div>
         </article>
 
-        <!-- Services: layers -->
+        <!-- Services -->
         <article class="system-card">
             <div class="system-card__icon" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg"
@@ -53,7 +54,7 @@
             </div>
         </article>
 
-        <!-- Maintenance: wrench -->
+        <!-- Maintenance -->
         <article class="system-card">
             <div class="system-card__icon" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg"
@@ -73,6 +74,104 @@
                 </p>
             </div>
         </article>
+
+        <!-- System Logs -->
+        <a class="system-card" href="/settings/system/logs" data-route="/settings/system/logs">
+            <div class="system-card__icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="24" height="24" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor"
+                     stroke-width="1.8"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+                    <path d="M8 6h13"/>
+                    <path d="M8 12h13"/>
+                    <path d="M8 18h13"/>
+                    <path d="M3 6h.01"/>
+                    <path d="M3 12h.01"/>
+                    <path d="M3 18h.01"/>
+                </svg>
+            </div>
+
+            <div class="system-card__content">
+                <h2>System Logs</h2>
+                <p>
+                    Technical logs, errors and system operations.
+                </p>
+            </div>
+        </a>
+
+        <!-- Event Logs -->
+        <a class="system-card" href="/settings/system/event-logs" data-route="/settings/system/event-logs">
+            <div class="system-card__icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="24" height="24" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor"
+                     stroke-width="1.8"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+                    <path d="M12 3v3"/>
+                    <path d="M12 18v3"/>
+                    <path d="m3 12 3 0"/>
+                    <path d="m18 12 3 0"/>
+                    <circle cx="12" cy="12" r="6"/>
+                    <path d="m12 9 0 3 2 1"/>
+                </svg>
+            </div>
+
+            <div class="system-card__content">
+                <h2>Event Logs</h2>
+                <p>
+                    Events and changes occurring in your smart home.
+                </p>
+            </div>
+        </a>
+
+        <!-- Activity Logs -->
+        <a class="system-card" href="/settings/system/activity-logs" data-route="/settings/system/activity-logs">
+            <div class="system-card__icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="24" height="24" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor"
+                     stroke-width="1.8"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+                    <path d="M2 21a8 8 0 0 1 6.898-7.924"/>
+                    <path d="M8.987 12.897a5 5 0 1 1 6.008-4.673"/>
+                    <path d="M13.5 14h6M13.5 17h6M13.5 20h6"/>
+                </svg>
+            </div>
+
+            <div class="system-card__content">
+                <h2>Activity Logs</h2>
+                <p>
+                    Actions performed by users, automations and assistants.
+                </p>
+            </div>
+        </a>
+
+        <!-- Device Logs -->
+        <a class="system-card" href="/settings/system/device-logs" data-route="/settings/system/device-logs">
+            <div class="system-card__icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="24" height="24" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor"
+                     stroke-width="1.8"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+                    <rect x="5" y="2" width="14" height="20" rx="2"/>
+                    <path d="M12 18h.01"/>
+                    <path d="M9 6h6"/>
+                </svg>
+            </div>
+
+            <div class="system-card__content">
+                <h2>Device Logs</h2>
+                <p>
+                    Device states, readings and availability history.
+                </p>
+            </div>
+        </a>
 
     </section>
 </section>
