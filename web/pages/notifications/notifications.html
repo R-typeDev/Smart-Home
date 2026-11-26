@@ -1,0 +1,160 @@
+<section class="notifications">
+
+    <header class="notifications__header">
+        <div>
+            <h1 data-i18n="notifications.title">Notifications</h1>
+            <p
+                class="notifications__subtitle"
+                data-i18n="notifications.description"
+            >
+                Stay informed about important events in your smart home.
+            </p>
+        </div>
+
+        <button
+            class="notifications__mark-all"
+            id="notifications-mark-all"
+            type="button"
+            data-i18n="notifications.markAllRead"
+        >
+            Mark all as read
+        </button>
+    </header>
+
+    <div class="notifications-summary">
+
+        <article class="notifications-summary__card">
+            <span data-i18n="notifications.total">Total notifications</span>
+            <strong id="notifications-total">0</strong>
+        </article>
+
+        <article class="notifications-summary__card">
+            <span data-i18n="notifications.unread">Unread</span>
+            <strong id="notifications-unread">0</strong>
+        </article>
+
+        <article class="notifications-summary__card">
+            <span data-i18n="notifications.important">Important</span>
+            <strong id="notifications-important">0</strong>
+        </article>
+
+    </div>
+
+    <div class="notifications-toolbar">
+
+        <div class="notifications-search">
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+            >
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+            </svg>
+
+            <input
+                id="notifications-search"
+                type="search"
+                placeholder="Search notifications..."
+                data-i18n-placeholder="notifications.search"
+                aria-label="Search notifications"
+            >
+        </div>
+
+        <div class="notifications-toolbar__filters">
+
+            <select
+                id="notifications-category"
+                aria-label="Notification category"
+            >
+                <option value="all" data-i18n="notifications.categories.all">
+                    All categories
+                </option>
+                <option value="system" data-i18n="notifications.categories.system">
+                    System
+                </option>
+                <option value="devices" data-i18n="notifications.categories.devices">
+                    Devices
+                </option>
+                <option value="automations" data-i18n="notifications.categories.automations">
+                    Automations
+                </option>
+                <option value="custom" data-i18n="notifications.categories.custom">
+                    Custom
+                </option>
+            </select>
+
+            <select
+                id="notifications-status"
+                aria-label="Notification status"
+            >
+                <option value="all" data-i18n="notifications.status.all">
+                    All notifications
+                </option>
+                <option value="unread" data-i18n="notifications.status.unread">
+                    Unread
+                </option>
+                <option value="read" data-i18n="notifications.status.read">
+                    Read
+                </option>
+            </select>
+
+        </div>
+
+    </div>
+
+    <div class="notifications-content">
+
+        <div class="notifications-list" id="notifications-list">
+
+            <div
+                class="notifications-empty"
+                id="notifications-empty"
+                hidden
+            >
+                <h2 data-i18n="notifications.empty.title">
+                    No notifications
+                </h2>
+
+                <p data-i18n="notifications.empty.description">
+                    There are no notifications to display.
+                </p>
+            </div>
+
+        </div>
+
+        <aside
+            class="notification-details"
+            id="notification-details"
+            hidden
+        >
+            <div class="notification-details__header">
+                <h2 data-i18n="notifications.details">
+                    Notification details
+                </h2>
+
+                <button
+                    id="notification-details-close"
+                    type="button"
+                    aria-label="Close details"
+                >
+                    &times;
+                </button>
+            </div>
+
+            <div
+                class="notification-details__content"
+                id="notification-details-content"
+            ></div>
+        </aside>
+
+    </div>
+
+</section>

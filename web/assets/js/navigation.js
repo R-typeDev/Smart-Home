@@ -1,5 +1,4 @@
-﻿
-import { loadPage } from "./component-loader.js";
+﻿import { loadPage } from "./component-loader.js";
 import { applyTranslations } from "./i18n.js";
 
 const pages = {
@@ -8,6 +7,13 @@ const pages = {
         html: "/pages/dashboard/dashboard.html",
         js: "/pages/dashboard/dashboard.js",
         css: "/pages/dashboard/dashboard.css"
+    },
+
+    "/notifications": {
+        name: "notifications",
+        html: "/pages/notifications/notifications.html",
+        js: "/pages/notifications/notifications.js",
+        css: "/pages/notifications/notifications.css"
     },
 
     "/devices": {

@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -10,6 +11,7 @@
 
     <link rel="stylesheet" href="/assets/css/main.css">
     <link rel="stylesheet" href="/assets/css/layout.css">
+    <link rel="stylesheet" href="/assets/css/notifications.css">
 </head>
 <body>
     <div class="app-shell">
@@ -19,6 +21,75 @@
                 <span class="app-brand__icon" aria-hidden="true">⌂</span>
                 <span>Smart Home</span>
             </a>
+
+            <div class="app-header__actions">
+                <div class="notification-menu" id="notification-menu">
+
+                    <button
+                        class="notification-menu__trigger"
+                        id="notification-menu-trigger"
+                        type="button"
+                        aria-label="Notifications"
+                        aria-expanded="false"
+                        aria-controls="notification-menu-dropdown"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M10.268 21a2 2 0 0 0 3.464 0"/>
+                            <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/>
+                        </svg>
+
+                        <span
+                            class="notification-menu__badge"
+                            id="notification-menu-badge"
+                            hidden
+                        >0</span>
+                    </button>
+
+                    <div
+                        class="notification-menu__dropdown"
+                        id="notification-menu-dropdown"
+                        hidden
+                    >
+                        <div class="notification-menu__header">
+                            <h2 data-i18n="notifications.header.title">Notifications</h2>
+                            <span
+                                class="notification-menu__unread"
+                                id="notification-menu-unread"
+                            >0</span>
+                        </div>
+
+                        <div
+                            class="notification-menu__list"
+                            id="notification-menu-list"
+                        >
+                            <div class="notification-menu__empty">
+                                <p data-i18n="notifications.header.empty">
+                                    No notifications yet
+                                </p>
+                            </div>
+                        </div>
+
+                        <a
+                            class="notification-menu__all"
+                            href="/notifications"
+                            data-route="/notifications"
+                            data-i18n="notifications.header.viewAll"
+                        >View all notifications</a>
+                    </div>
+
+                </div>
+            </div>
         </header>
 
         <div class="app-body">

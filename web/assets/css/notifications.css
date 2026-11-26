@@ -1,0 +1,219 @@
+
+/* Notifications header */
+
+.notification-menu {
+    position: relative;
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+}
+
+.notification-menu__trigger {
+    position: relative;
+    display: grid;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-primary);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.notification-menu__trigger:hover {
+    background: var(--color-background, #f0f4fa);
+}
+
+.notification-menu__trigger svg {
+    display: block;
+    width: 23px;
+    height: 23px;
+}
+
+.notification-menu__badge {
+    position: absolute;
+    top: 1px;
+    right: 0;
+    display: grid;
+    min-width: 17px;
+    height: 17px;
+    place-items: center;
+    padding: 0 4px;
+    border: 2px solid var(--color-surface);
+    border-radius: 20px;
+    background: #e5484d;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.notification-menu__badge[hidden] {
+    display: none;
+}
+
+.notification-menu__dropdown {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    z-index: 200;
+    display: flex;
+    width: 360px;
+    max-width: calc(100vw - 32px);
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-surface);
+    box-shadow: 0 8px 28px rgb(0 0 0 / 12%);
+}
+
+.notification-menu__dropdown[hidden] {
+    display: none;
+}
+
+.notification-menu__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.notification-menu__header h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.notification-menu__unread {
+    display: grid;
+    min-width: 22px;
+    height: 22px;
+    place-items: center;
+    padding: 0 6px;
+    border-radius: 20px;
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.notification-menu__list {
+    display: flex;
+    max-height: 380px;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.notification-menu__item {
+    display: flex;
+    width: 100%;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 13px 16px;
+    border: 0;
+    border-bottom: 1px solid var(--color-border);
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.notification-menu__item:hover {
+    background: var(--color-background, #f7f9fc);
+}
+
+.notification-menu__item.is-unread {
+    background: var(--color-background, #f7f9fc);
+}
+
+.notification-menu__item-indicator {
+    width: 8px;
+    height: 8px;
+    flex: 0 0 8px;
+    margin-top: 6px;
+    border-radius: 50%;
+    background: var(--color-muted);
+}
+
+.notification-menu__item-indicator--critical {
+    background: #e5484d;
+}
+
+.notification-menu__item-indicator--warning {
+    background: #e5a000;
+}
+
+.notification-menu__item-indicator--info {
+    background: var(--color-primary);
+}
+
+.notification-menu__item-content {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.notification-menu__item-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.notification-menu__item-description {
+    color: var(--color-muted);
+    font-size: 0.8rem;
+    line-height: 1.45;
+}
+
+.notification-menu__item-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    color: var(--color-muted);
+    font-size: 0.72rem;
+}
+
+.notification-menu__empty {
+    padding: 24px 16px;
+    color: var(--color-muted);
+    text-align: center;
+    font-size: 0.875rem;
+}
+
+.notification-menu__empty p {
+    margin: 0;
+}
+
+.notification-menu__all {
+    display: block;
+    padding: 14px 16px;
+    border-top: 1px solid var(--color-border);
+    color: var(--color-primary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+
+.notification-menu__all:hover {
+    background: var(--color-background, #f0f4fa);
+}
+
+@media (max-width: 700px) {
+    .notification-menu__dropdown {
+        position: fixed;
+        top: 76px;
+        right: 16px;
+        width: 360px;
+    }
+}

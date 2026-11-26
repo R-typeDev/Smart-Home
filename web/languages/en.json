@@ -1,3 +1,4 @@
+
 {
     "app": {
         "name": "Smart Home",
@@ -61,6 +62,10 @@
         "about": {
             "title": "About",
             "description": "Information, version and system status of the Smart Home application."
+        },
+        "notifications": {
+            "title": "Notifications",
+            "description": "View and manage important smart home notifications."
         }
     },
     "devices": {
@@ -184,5 +189,79 @@
         "platformValue": "Home Automation",
         "license": "License",
         "licenseValue": "To be determined"
+    },
+    "notifications": {
+        "title": "Notifications",
+        "description": "Stay informed about important events in your smart home.",
+        "markAllRead": "Mark all as read",
+        "total": "Total notifications",
+        "unread": "Unread",
+        "important": "Important",
+        "search": "Search notifications...",
+        "categories": {
+            "all": "All categories",
+            "system": "System",
+            "devices": "Devices",
+            "automations": "Automations",
+            "custom": "Custom"
+        },
+        "status": {
+            "all": "All notifications",
+            "unread": "Unread",
+            "read": "Read"
+        },
+        "severity": {
+            "info": "Information",
+            "warning": "Warning",
+            "critical": "Critical"
+        },
+        "empty": {
+            "title": "No notifications",
+            "description": "There are no notifications to display."
+        },
+        "details": "Notification details",
+        "detailsCategory": "Category",
+        "detailsSeverity": "Severity",
+        "detailsSource": "Source",
+        "markRead": "Mark as read",
+        "markUnread": "Mark as unread",
+        "closeDetails": "Close notification details",
+        "header": {
+            "title": "Notifications",
+            "empty": "No notifications yet",
+            "viewAll": "View all notifications"
+        },
+        "demo": {
+            "backupFailed": {
+                "title": "System backup failed",
+                "description": "The scheduled system backup could not be completed.",
+                "details": "The backup process encountered an error while creating the archive. Check the storage destination and available disk space."
+            },
+            "deviceDisconnected": {
+                "title": "Device disconnected",
+                "description": "Device \"{device_name}\" is no longer available.",
+                "details": "The connection to device \"{device_name}\" was lost. Check its power supply and network connection."
+            },
+            "automationFailed": {
+                "title": "Automation execution failed",
+                "description": "The scheduled automation could not be completed.",
+                "details": "One or more actions in the automation failed. Check the automation configuration and the availability of the required devices."
+            },
+            "updateAvailable": {
+                "title": "System update available",
+                "description": "A new application update is available.",
+                "details": "A new version of Smart Home is ready to be installed."
+            },
+            "deviceReconnected": {
+                "title": "Device reconnected",
+                "description": "The connection to device \"{device_name}\" has been restored.",
+                "details": "Device \"{device_name}\" is online and available for control."
+            },
+            "highTemperature": {
+                "title": "High temperature detected",
+                "description": "The temperature reported by \"{device_name}\" has exceeded the configured threshold.",
+                "details": "A configured temperature threshold has been reached. Check the current temperature and the relevant system settings."
+            }
+        }
     }
 }
