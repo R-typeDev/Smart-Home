@@ -16,11 +16,39 @@
 }
 
 .settings-general-section__header {
+    display: flex;
+    align-items: center;
     padding: 20px 24px;
     border-bottom: 1px solid var(--color-border, #e5e7eb);
 }
 
-.settings-general-section__header h2 {
+.settings-general-section__title {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Section icon */
+
+.settings-general-section__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    background: var(--color-background, #f3f5f8);
+    border-radius: 10px;
+    color: var(--color-primary, #168A68);
+}
+
+.settings-general-section__icon svg {
+    display: block;
+    width: 24px;
+    height: 24px;
+}
+
+.settings-general-section__title h2 {
     margin: 0;
     font-size: 16px;
     font-weight: 600;
