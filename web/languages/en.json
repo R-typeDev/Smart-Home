@@ -9,6 +9,7 @@
         "dashboard": "Dashboard",
         "devices": "Devices",
         "network": "Network",
+        "zones": "Zones",
         "integrations": "Integrations",
         "settings": "Settings"
     },
@@ -26,9 +27,32 @@
     "pages": {
         "devices": "Devices",
         "network": "Network",
+        "zones": "Zones",
         "integrations": "Integrations",
         "settings": "Settings",
         "placeholder": "This section will be connected in a later step."
+    },
+    "zones": {
+        "description": "Manage your home, rooms and other areas.",
+        "addButton": "Add Zone",
+        "countLabel": "Zones",
+        "formTitle": "Add Zone",
+        "name": "Zone name",
+        "namePlaceholder": "Enter zone name",
+        "parent": "Parent zone",
+        "noParent": "No parent zone",
+        "type": "Zone type",
+        "selectType": "Select zone type",
+        "types": {
+            "home": "Home",
+            "building": "Building",
+            "floor": "Floor",
+            "room": "Room",
+            "area": "Area"
+        },
+        "cancel": "Cancel",
+        "create": "Create Zone",
+        "previewMessage": "Zone creation will be available in a later step."
     },
     "pageMeta": {
         "dashboard": {
@@ -46,6 +70,10 @@
         "network": {
             "title": "Network",
             "description": "Monitor your home network and connected network equipment."
+        },
+        "zones": {
+            "title": "Zones",
+            "description": "Manage your home, rooms and other areas."
         },
         "integrations": {
             "title": "Integrations",

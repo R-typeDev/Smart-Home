@@ -1,4 +1,4 @@
-﻿import { loadPage } from "./component-loader.js";
+import { loadPage } from "./component-loader.js";
 import { applyTranslations } from "./i18n.js";
 
 const pages = {
@@ -21,6 +21,12 @@ const pages = {
         html: "/pages/devices/list/list.html",
         js: "/pages/devices/list/list.js",
         css: "/pages/devices/list/list.css"
+    },
+    "/zones": {
+        name: "zones",
+        html: "/pages/zones/zones.html",
+        js: "/pages/zones/zones.js",
+        css: "/pages/zones/zones.css"
     },
 
     "/devices/add": {

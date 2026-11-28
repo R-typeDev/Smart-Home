@@ -1,0 +1,141 @@
+
+<section class="zones-page" aria-labelledby="zones-title">
+
+    <header class="page-header">
+        <div>
+            <h1 id="zones-title" data-i18n="pages.zones">Zones</h1>
+            <p class="page-description" data-i18n="zones.description">
+                Manage your home, rooms and other areas.
+            </p>
+        </div>
+
+        <button
+            id="zones-add-toggle"
+            class="zones-add-button"
+            type="button"
+            aria-expanded="false"
+            aria-controls="zones-form-card"
+        >
+            <span aria-hidden="true">+</span>
+            <span data-i18n="zones.addButton">Add Zone</span>
+        </button>
+    </header>
+
+    <div class="zones-overview">
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="128"
+            height="128"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="zones-overview__icon lucide lucide-land-plot"
+            aria-hidden="true"
+        >
+            <path d="m12 8 6-3-6-3v10"/>
+            <path d="m8 11.99-5.5 3.14a1 1 0 0 0 0 1.74l8.5 4.86a2 2 0 0 0 2 0l8.5-4.86a1 1 0 0 0 0-1.74L16 12"/>
+            <path d="m6.49 12.85 11.02 6.3"/>
+            <path d="M17.51 12.85 6.5 19.15"/>
+        </svg>
+
+        <div class="zones-overview__count">
+            <strong>12</strong>
+            <span data-i18n="zones.countLabel">Zones</span>
+        </div>
+    </div>
+
+    <section
+        id="zones-form-card"
+        class="zones-form-card"
+        aria-labelledby="zones-form-title"
+        hidden
+    >
+        <div class="zones-form-card__header">
+            <h2 id="zones-form-title" data-i18n="zones.formTitle">
+                Add Zone
+            </h2>
+        </div>
+
+        <form id="zones-form">
+            <div class="zones-form">
+
+                <div class="zones-field zones-field--full">
+                    <label for="zone-name" data-i18n="zones.name">
+                        Zone name
+                    </label>
+
+                    <input
+                        id="zone-name"
+                        name="name"
+                        type="text"
+                        required
+                        maxlength="100"
+                        placeholder="Enter zone name"
+                        data-i18n-placeholder="zones.namePlaceholder"
+                    >
+                </div>
+
+                <div class="zones-field">
+                    <label for="zone-parent" data-i18n="zones.parent">
+                        Parent zone
+                    </label>
+
+                    <select id="zone-parent" name="parent">
+                        <option value="" selected data-i18n="zones.noParent">
+                            No parent zone
+                        </option>
+                    </select>
+                </div>
+
+                <div class="zones-field">
+                    <label for="zone-type" data-i18n="zones.type">
+                        Zone type
+                    </label>
+
+                    <select id="zone-type" name="type">
+                        <option value="" selected data-i18n="zones.selectType">
+                            Select zone type
+                        </option>
+                        <option value="home" data-i18n="zones.types.home">Home</option>
+                        <option value="building" data-i18n="zones.types.building">Building</option>
+                        <option value="floor" data-i18n="zones.types.floor">Floor</option>
+                        <option value="room" data-i18n="zones.types.room">Room</option>
+                        <option value="area" data-i18n="zones.types.area">Area</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div
+                id="zones-form-message"
+                class="zones-form-message"
+                role="status"
+                aria-live="polite"
+                hidden
+            ></div>
+
+            <div class="zones-form-actions">
+                <button
+                    id="zones-cancel"
+                    class="zones-cancel-button"
+                    type="button"
+                    data-i18n="zones.cancel"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    class="zones-submit-button"
+                    type="submit"
+                    data-i18n="zones.create"
+                >
+                    Create Zone
+                </button>
+            </div>
+        </form>
+    </section>
+
+</section>
